@@ -345,48 +345,48 @@ table.tbl{border-collapse:collapse;width:100%;min-width:860px;font-size:.88rem}
 ::view-transition-group(mf-card){animation-duration:.4s}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}.sk{animation:none}}
 
-/* ================= Modern App Layout & Device Chassis ================= */
-
-  body:not(.wide-mode) #app {
-    position: relative;
-  }
-  body:not(.wide-mode) #app .overlay {
-    position: absolute;
-    border-radius: 38px;
-  }
-  body:not(.wide-mode) #app #toasts {
-    position: absolute;
-    top: 12px;
-  }
-  body:not(.wide-mode) .viewport-scroll {
-    flex: 1;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-  }
-  body:not(.wide-mode) .nav,
-  body:not(.wide-mode) .pbar {
-    position: sticky;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    margin-top: auto;
-    z-index: 25;
-  }
-  body:not(.wide-mode) .fabwrap {
-    position: sticky;
-    bottom: 74px;
-    margin-top: -60px;
-    z-index: 26;
-  }
-
+/* ================= Modern Responsive Web Layout ================= */
 :root {
-  --nav-height: 56px;
+  --nav-height: 60px;
 }
 
-/* Unified App Header */
+#app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--text);
+  position: relative;
+}
+
+.viewport-scroll {
+  flex: 1;
+  width: 100%;
+}
+
+.col {
+  width: 100%;
+  max-width: 680px;
+  margin: 0 auto;
+}
+.col.wide {
+  max-width: 1120px;
+}
+.col.mid {
+  max-width: 860px;
+}
+
+.page {
+  width: 100%;
+  padding: 20px 16px 84px;
+}
+@media (min-width: 768px) {
+  .page {
+    padding: 30px 24px 60px;
+  }
+}
+
+/* Unified Web Header */
 .app-header {
   background: var(--surface);
   border-bottom: 1px solid var(--line);
@@ -400,24 +400,25 @@ table.tbl{border-collapse:collapse;width:100%;min-width:860px;font-size:.88rem}
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 12px;
   min-height: var(--nav-height);
+  padding-inline: 4px;
 }
 .nav-brand {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   background: none;
   border: 0;
-  padding: 4px;
+  padding: 4px 0;
   color: var(--text);
-  font: 800 1.25rem var(--font-head);
+  font: 800 1.28rem var(--font-head);
   text-decoration: none;
   cursor: pointer;
 }
 .brand-icon {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border-radius: 10px;
   background: linear-gradient(135deg, var(--primary), var(--primary-ink));
   color: #fff;
@@ -425,7 +426,7 @@ table.tbl{border-collapse:collapse;width:100%;min-width:860px;font-size:.88rem}
   place-items: center;
   box-shadow: 0 2px 8px rgba(13,92,99,0.3);
 }
-.brand-icon svg { width: 18px; height: 18px; }
+.brand-icon svg { width: 19px; height: 19px; }
 .brand-text small {
   font-size: 0.65rem;
   letter-spacing: 0.08em;
@@ -436,45 +437,57 @@ table.tbl{border-collapse:collapse;width:100%;min-width:860px;font-size:.88rem}
   margin-top: -3px;
 }
 
-/* Role Selector Pill */
-.role-pill {
+/* User Profile Badge */
+.user-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
   background: var(--surface2);
   border: 1px solid var(--line);
-  padding: 6px 14px;
+  padding: 5px 14px 5px 8px;
   border-radius: 99px;
-  font-weight: 700;
-  font-size: 0.82rem;
-  color: var(--primary-ink);
-  cursor: pointer;
-  transition: all 0.15s ease;
 }
-.role-pill:hover {
-  background: var(--primary-soft);
-  border-color: var(--primary-ink);
-  transform: translateY(-1px);
+.user-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  flex: none;
 }
-.role-pill svg.i { width: 15px; height: 15px; }
+.user-avatar svg { width: 15px; height: 15px; }
+.user-meta {
+  line-height: 1.15;
+  text-align: left;
+}
+.user-meta b {
+  font-size: 0.85rem;
+  display: block;
+}
+.user-meta small {
+  font-size: 0.7rem;
+  color: var(--muted);
+  font-weight: 600;
+}
 
-/* Nav Actions */
 .nav-actions {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 .nav-btn {
   background: var(--surface2);
   border: 1px solid var(--line);
-  min-height: 34px;
-  padding: 4px 10px;
+  min-height: 36px;
+  padding: 5px 12px;
   border-radius: 99px;
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   font-weight: 600;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   color: var(--text);
   cursor: pointer;
   transition: all 0.15s ease;
@@ -492,7 +505,7 @@ table.tbl{border-collapse:collapse;width:100%;min-width:860px;font-size:.88rem}
 .status-pill {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   padding: 4px 10px;
   border-radius: 99px;
   font-size: 0.74rem;
@@ -506,135 +519,172 @@ table.tbl{border-collapse:collapse;width:100%;min-width:860px;font-size:.88rem}
   height: 8px;
   border-radius: 50%;
   background: var(--ok-strong);
-  box-shadow: 0 0 0 0 rgba(23,101,61,.7);
   animation: pulse-dot 2s infinite;
 }
 .status-pill.off .status-dot {
   background: var(--amber-strong);
   animation: none;
-  box-shadow: none;
 }
 @keyframes pulse-dot{0%{box-shadow:0 0 0 0 rgba(23,101,61,.7)}70%{box-shadow:0 0 0 7px rgba(23,101,61,0)}100%{box-shadow:0 0 0 0 rgba(23,101,61,0)}}
 
-@media (max-width: 640px) {
-  .hide-sm { display: none !important; }
-  .role-pill { padding: 4px 8px; font-size: 0.75rem; }
-  .nav-btn { padding: 4px 8px; }
-}
-
-/* Desktop Smartphone Canvas Frame */
-@media (min-width: 900px) {
-  body:not(.wide-mode) {
-    background: #080F10;
-    background-image: 
-      radial-gradient(at 0% 0%, rgba(13,92,99,0.15) 0px, transparent 50%),
-      radial-gradient(at 100% 100%, rgba(244,162,97,0.1) 0px, transparent 50%);
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 24px 16px;
-  }
-  body:not(.wide-mode) #app {
-    width: 440px;
-    height: min(890px, 94vh); max-height: 94vh;
-    background: var(--bg);
-    border-radius: 40px;
-    box-shadow: 
-      0 0 0 10px #182729, 
-      0 0 0 12px #2A4144, 
-      0 25px 70px rgba(0,0,0,0.8),
-      inset 0 0 2px rgba(255,255,255,0.2);
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    border: 1px solid rgba(255,255,255,0.08);
-  }
-  body:not(.wide-mode) #app > .app-header {
-    border-radius: 38px 38px 0 0;
-  }
-  body:not(.wide-mode) .viewport-scroll {
-    flex: 1;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    position: relative;
-  }
-  body:not(.wide-mode) .nav,
-  body:not(.wide-mode) .pbar {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    border-radius: 0 0 38px 38px;
-    padding-bottom: 12px;
-  }
-  body:not(.wide-mode) .fabwrap {
-    position: absolute;
-    bottom: 84px;
-  }
-}
-
-/* Persona Selection Cards Overhaul */
-.rolecard {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  width: 100%;
-  text-align: left;
-  padding: 18px 20px;
-  border: 1.5px solid var(--line);
-  border-radius: 20px;
+/* Responsive Navigation Bar */
+.nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: var(--surface);
-  min-height: 104px;
-  position: relative;
-  box-shadow: var(--shadow);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  cursor: pointer;
+  border-top: 1px solid var(--line);
+  padding: 0 max(0px, env(safe-area-inset-left, 0px)) env(safe-area-inset-bottom, 0px) max(0px, env(safe-area-inset-right, 0px));
+  z-index: 40;
 }
-.rolecard:hover {
-  border-color: var(--primary-ink);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(13,92,99,0.15);
+@media (min-width: 768px) {
+  .nav {
+    position: sticky;
+    top: var(--nav-height);
+    bottom: auto;
+    border-top: 0;
+    border-bottom: 1px solid var(--line);
+    z-index: 35;
+  }
+  .nav .col {
+    max-width: 480px;
+  }
+  .nav button {
+    min-height: 48px;
+    flex-direction: row;
+    gap: 8px;
+    font-size: 0.88rem;
+  }
+  .nav button svg { width: 19px; height: 19px; }
+  .page {
+    padding-bottom: 40px !important;
+  }
 }
-.rolecard .ico {
-  width: 56px;
-  height: 56px;
-  border-radius: 16px;
-  display: grid;
-  place-items: center;
-  flex: none;
-  background: var(--primary-soft);
-  color: var(--primary-ink);
+
+/* Call Support Docking - Never covers content */
+.fabwrap {
+  position: fixed;
+  right: 20px;
+  bottom: 84px;
+  z-index: 39;
+  pointer-events: none;
 }
-.rolecard.s .ico { background: var(--amber-soft); color: var(--amber-ink); }
-.rolecard.c .ico { background: var(--surface2); color: var(--text); }
-.rolecard.r .ico { background: var(--ok-soft); color: var(--ok); }
-.rolecard .badge-tag {
-  font-size: 0.68rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--primary-ink);
-  background: var(--primary-soft);
-  padding: 2px 8px;
-  border-radius: 6px;
+@media (min-width: 768px) {
+  .fabwrap {
+    bottom: 24px;
+    right: 24px;
+  }
+}
+.fabwrap .fab {
+  pointer-events: auto;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.22);
+}
+
+/* Landing Portal & Auth Form */
+.landing-hero {
+  text-align: center;
+  padding: 24px 16px 28px;
+  background: linear-gradient(180deg, var(--primary-soft) 0%, transparent 100%);
+  border-radius: 24px;
+  margin-bottom: 24px;
+  border: 1px solid var(--line);
+}
+.landing-hero .badge {
   display: inline-block;
-  margin-bottom: 4px;
+  padding: 4px 12px;
+  background: var(--surface);
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--primary-ink);
+  margin-bottom: 12px;
+  border: 1px solid var(--line);
 }
-.rolecard b {
-  font: 800 1.2rem var(--font-head);
-  display: block;
+.landing-hero h1 {
+  font-size: clamp(1.6rem, 4vw, 2.3rem);
+  font-weight: 800;
+  margin-bottom: 10px;
+  color: var(--text);
 }
-.rolecard .d {
+.landing-hero p {
+  font-size: clamp(0.92rem, 2vw, 1.05rem);
+  color: var(--muted);
+  max-width: 580px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+/* Role Selector Segment Tabs */
+.role-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 18px;
+}
+@media (min-width: 600px) {
+  .role-tabs {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+.role-tab-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 14px 8px;
+  background: var(--surface);
+  border: 2px solid var(--line);
+  border-radius: 16px;
+  font-weight: 700;
   font-size: 0.85rem;
   color: var(--muted);
-  display: block;
-  margin-top: 2px;
-  line-height: 1.35;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.role-tab-btn:hover {
+  border-color: var(--primary);
+  color: var(--text);
+}
+.role-tab-btn.active {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  color: var(--primary-ink);
+  box-shadow: 0 4px 12px rgba(13,92,99,0.12);
+}
+.role-tab-btn svg { width: 22px; height: 22px; }
+
+/* Auth Card */
+.auth-box {
+  background: var(--surface);
+  border: 1.5px solid var(--line);
+  border-radius: 20px;
+  padding: 22px;
+  box-shadow: var(--shadow);
+}
+.demo-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 20px 0 16px;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.demo-divider::before, .demo-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--line);
+}
+.demo-divider span {
+  padding: 0 10px;
 }
 
-/* Digital Weigh Scale Console */
+/* Digital Scale Console */
 .scale-console {
   background: #0B1415;
   color: #2CE88D;
@@ -693,29 +743,33 @@ table.tbl{border-collapse:collapse;width:100%;min-width:860px;font-size:.88rem}
   justify-content: center;
   gap: 12px;
   width: 100%;
-  min-height: max(200px, 30vh);
+  min-height: 180px;
   border: 0;
   border-radius: 24px;
   background: linear-gradient(135deg, #F4A261, #E28738);
   color: #2E1B00;
   text-align: center;
   padding: 24px 18px;
-  box-shadow: 0 8px 0 #B96B1C, 0 14px 28px rgba(185,107,28,0.28);
+  box-shadow: 0 6px 0 #B96B1C, 0 12px 24px rgba(185,107,28,0.25);
   transition: transform 0.12s cubic-bezier(0.3,0,0,1), box-shadow 0.12s cubic-bezier(0.3,0,0,1);
   cursor: pointer;
 }
 .cta-big:active {
-  transform: translateY(6px);
-  box-shadow: 0 2px 0 #B96B1C, 0 6px 14px rgba(185,107,28,0.2);
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 #B96B1C, 0 4px 12px rgba(185,107,28,0.2);
 }
 .cta-big svg {
-  width: 58px;
-  height: 58px;
+  width: 52px;
+  height: 52px;
   stroke-width: 1.8;
-  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.15));
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
 }
-.cta-big b { font: 800 1.75rem/1.15 var(--font-head); }
-.cta-big span { font-weight: 600; opacity: 0.92; font-size: 0.95rem; }
+.cta-big b { font: 800 1.6rem/1.2 var(--font-head); }
+.cta-big span { font-weight: 600; opacity: 0.92; font-size: 0.92rem; }
+
+@media (max-width: 640px) {
+  .hide-sm { display: none !important; }
+}
 
 </style>
 
@@ -788,6 +842,8 @@ function t(k,p){const a=T[k];let s=a?(a[LANGS.findIndex(l=>l[0]===S.lang)]||a[0]
 
 /* ================= icons ================= */
 const IC={
+ logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>',
+ wrench:'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
  camera:'<path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/>',
  call:'<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/>',
  home:'<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>',
@@ -854,16 +910,32 @@ function quarterOf(ts){const d=new Date(ts),m=d.getMonth(),y=d.getFullYear();con
  return{q,fy,start,end,label:`Q${q} FY${String(fy).slice(2)}-${String(fy+1).slice(2)}`}}
 
 /* ================= state ================= */
-const LS='akrit.v1';
-const DEFAULT_PROFILES={
+const LS='akrit.v2';
+const DEMO_PROFILES={
  kabadi:{id:'u_sunita',role:'kabadi',phone:'9820145892',name:'Sunita Kamble',zone:'Dharavi',aadhaarLast4:'4821',named:true},
- shop:{id:'u_lamington',role:'shop',phone:'9819234510',shopName:'Lamington Mobile Care',gst:'27AABCU9603R1ZM',zone:'Grant Road',badgeSeen:true,named:true},
+ shop:{id:'u_lamington',role:'shop',phone:'9819234510',shopName:'Lamington Mobile Care',name:'Lamington Mobile Care',gst:'27AABCU9603R1ZM',zone:'Grant Road',badgeSeen:true,named:true},
+ recdesk:{id:'u_eco',role:'recdesk',name:'Eco-Recycling Desk',facility:'Ecoreco Vasai',zone:'Vasai'},
  compliance:{id:'u_compliance',role:'compliance',email:'rohan.d@samsung.com',name:'Rohan Deshmukh',company:'Samsung India Electronics Pvt Ltd',idType:'CIN',idNo:'U32109DL1995PTC070624',connected:['r1','r2','r3'],target:1200,kgPerCredit:1,anonymize:false,includeSample:true}
 };
-const S={view:'select',role:null,profiles:{...DEFAULT_PROFILES},lang:'en',offline:false,loading:true,local:{m:{},p:{}},remote:{m:{},p:{}},queue:[],notified:{},reports:[],
+const S={view:'select',role:null,profiles:{},lang:'en',offline:false,loading:true,local:{m:{},p:{}},remote:{m:{},p:{}},queue:[],notified:{},reports:[],
  tab:{kabadi:'home',shop:'home',compliance:'overview'},ob:null,ui:{},db:null,dbState:'connecting',rev:0,pub:null};
 function persist(){try{localStorage.setItem(LS,JSON.stringify({profiles:S.profiles,role:S.role,lang:S.lang,local:S.local,queue:S.queue,notified:S.notified,reports:S.reports}))}catch(e){}}
-function restore(){try{const j=JSON.parse(localStorage.getItem(LS)||'null');if(j){S.profiles=(j.profiles&&Object.keys(j.profiles).length)?j.profiles:{...DEFAULT_PROFILES};S.role=j.role||null;S.lang=j.lang||'en';S.local=j.local||{m:{},p:{}};S.local.m=S.local.m||{};S.local.p=S.local.p||{};S.queue=j.queue||[];S.notified=j.notified||{};S.reports=j.reports||[]}}catch(e){}}
+function restore(){
+ try{
+  const j=JSON.parse(localStorage.getItem(LS)||'null');
+  if(j){
+   S.profiles=j.profiles||{};
+   S.role=j.role||null;
+   S.lang=j.lang||'en';
+   S.local=j.local||{m:{},p:{}};
+   S.local.m=S.local.m||{};
+   S.local.p=S.local.p||{};
+   S.queue=j.queue||[];
+   S.notified=j.notified||{};
+   S.reports=j.reports||[];
+  }
+ }catch(e){}
+}
 const prof=()=>S.role?S.profiles[S.role]:null;
 const isOffline=()=>S.offline||(typeof navigator!=='undefined'&&navigator.onLine===false);
 const bump=()=>{S.rev++};
@@ -1183,39 +1255,62 @@ const dbLabel=()=>({live:['Shared data','dotlive'],local:['This device only','do
 
 /* ================= unified app header ================= */
 function roleMeta(){
- if(S.view==='recycler') return { name: 'Recycler Desk', icon: 'truck' };
- if(S.role==='kabadi') return { name: prof()?.name || 'Kabadiwala', icon: 'truck' };
- if(S.role==='shop') return { name: prof()?.shopName || 'Repair Shop', icon: 'wrench' };
- if(S.role==='compliance') return { name: prof()?.company || 'Compliance', icon: 'building' };
- return { name: 'Select Persona', icon: 'user' };
+ if(S.view==='recycler') return { name: 'Eco-Recycling Desk', tag: 'MPCB Recycler · Vasai', icon: 'truck' };
+ if(S.role==='kabadi'){
+  const p = prof();
+  return { name: p?.name || 'Street Collector', tag: (p?.zone ? p.zone + ' · ' : '') + 'Collector', icon: 'truck' };
+ }
+ if(S.role==='shop'){
+  const p = prof();
+  return { name: p?.shopName || p?.name || 'Repair Shop', tag: (p?.zone ? p.zone + ' · ' : '') + 'Green Shop', icon: 'wrench' };
+ }
+ if(S.role==='compliance'){
+  const p = prof();
+  return { name: p?.company || p?.name || 'Samsung India', tag: 'Brand EPR Compliance', icon: 'building' };
+ }
+ return null;
 }
 
 function demobar(){
  const [lab,cls]=dbLabel();
- const rMeta = roleMeta();
- const isPwaReady = typeof window !== 'undefined' && !!window.deferredPwaPrompt;
+ const user = roleMeta();
+ const isLoggedIn = (S.view === 'app' && S.role) || S.view === 'recycler';
+
  return`<header class="app-header"><div class="gut"><div class="col wide nav-inner">
-  <button type="button" class="nav-brand" data-act="home" title="Go to Akrit Persona Hub">
+  <button type="button" class="nav-brand" data-act="home" title="Go to Project Akrit Home">
     <span class="brand-icon">${ic('mark')}</span>
     <span class="brand-text">Akrit <small>E-Waste</small></span>
   </button>
-  <button type="button" class="role-pill" data-act="role-menu" title="Click to switch persona">
-    ${ic(rMeta.icon)}<span>${esc(rMeta.name)}</span>${ic('chev')}
-  </button>
+
+  ${isLoggedIn ? `
+    <div class="user-badge">
+      <span class="user-avatar">${ic(user.icon)}</span>
+      <div class="user-meta">
+        <b>${esc(user.name)}</b>
+        <small>${esc(user.tag)}</small>
+      </div>
+    </div>
+  ` : ''}
+
   <div class="nav-actions">
     ${langBar()}
     <button type="button" class="nav-btn" data-act="about-open" title="Project Vision & Model">${ic('shield')}<span class="hide-sm">Vision</span></button>
     <button type="button" class="nav-btn ${S.offline?'off':''}" data-act="offline" title="Toggle Offline Simulation">
       ${ic('wifioff')}<span class="hide-sm">${S.offline?'Offline':'Online'}</span>
     </button>
-    <button type="button" class="nav-btn hide-sm" data-act="toggle-frame" title="Toggle Phone / Wide View">
-      ${ic(S.ui.wideMode?'laptop':'phone')}<span class="hide-sm">${S.ui.wideMode?'Phone View':'Wide'}</span>
-    </button>
+    ${isLoggedIn ? `
+      <button type="button" class="nav-btn" data-act="sign-out" title="Sign out of this user profile" style="color:var(--bad);border-color:var(--bad-soft)">
+        ${ic('logout')}<span class="hide-sm">Sign Out</span>
+      </button>
+    ` : `
+      <button type="button" class="btn btn-primary btn-sm" data-act="home">Sign In</button>
+    `}
     <span class="status-pill ${cls}" title="${lab}">
       <span class="status-dot"></span><span class="hide-sm">${lab}</span>
     </span>
   </div>
- </div></div></header>`}
+ </div></div></header>`
+}
 
 function render(){
  let h='';
@@ -1226,10 +1321,6 @@ function render(){
  else if(S.role==='kabadi')h+=viewKabadi();
  else if(S.role==='shop')h+=viewShop();
  else if(S.role==='compliance')h+=viewCompliance();
-
- if(typeof document !== 'undefined' && document.body){
-   document.body.classList.toggle('wide-mode', !!(S.ui && S.ui.wideMode));
- }
  app.innerHTML = demobar() + `<div class="viewport-scroll">${h}</div>` + overlays();
  after();
 }
@@ -1258,36 +1349,126 @@ function animateDial(){
 
 /* ================= role select & onboarding ================= */
 function viewSelect(){
- const roles = [
-  { id: 'kabadi', tag: 'FIRST-MILE COLLECTOR', title: 'Kabadiwala', icon: 'truck', desc: 'Log street scrap, get fair rates (+38% vs middleman), instant UPI payout & Digital Manifest.', color: 'k' },
-  { id: 'shop', tag: 'REPAIR SHOP OWNER', title: 'Electronic Repair Shop', icon: 'wrench', desc: 'Schedule doorstep tempo pickups for PCB scrap & earn your verifiable Green Shop badge.', color: 's' },
-  { id: 'recdesk', tag: 'RECYCLING FACILITY', title: 'Recycler Weigh Scale', icon: 'truck', desc: 'Simulate industrial scale weighing, verify weight tolerance (<10%), and approve instant UPI payouts.', color: 'r' },
-  { id: 'compliance', tag: 'BRAND COMPLIANCE', title: 'Brand EPR Portfolio', icon: 'building', desc: 'Track 70% CPCB recycling targets, audit verified manifests & generate 1-click CPCB reports.', color: 'c' }
- ];
+ const sel = S.ui.authRole || 'kabadi';
 
- return col(`<div class="page" style="padding-top:10px">
-  <div class="card flat" style="background:var(--primary-soft);border-left:4px solid var(--primary);margin-bottom:18px;padding:16px">
-   <div class="eyebrow" style="color:var(--primary-ink);font-weight:800;margin-bottom:4px">Zomato for India's E-Waste</div>
-   <h2 style="font-size:1.15rem;margin-bottom:4px">Project Akrit Prototype</h2>
-   <p class="muted" style="font-size:0.86rem;line-height:1.4">Select any of the 4 interactive personas below to experience the closed-loop e-waste supply chain:</p>
+ const roles = {
+  kabadi: {
+   tag: 'FIRST-MILE COLLECTOR',
+   title: 'Kabadiwala (Street Collector)',
+   icon: 'truck',
+   desc: 'Get transparent CPCB floor rates (+38% vs middlemen), instant UPI payout confirmation, and QR digital manifests.',
+   nameLabel: 'Your Full Name',
+   namePlaceholder: 'e.g. Ramesh Patil or Sunita Kamble',
+   demo: DEMO_PROFILES.kabadi
+  },
+  shop: {
+   tag: 'REPAIR ENTERPRISE',
+   title: 'Electronics Repair Shop Owner',
+   icon: 'wrench',
+   desc: 'Monetize circuit boards & component scrap, book doorstep tempo pickups, and display your verified Green Shop Certificate.',
+   nameLabel: 'Shop / Business Name',
+   namePlaceholder: 'e.g. Lamington Mobile Care',
+   demo: DEMO_PROFILES.shop
+  },
+  recdesk: {
+   tag: 'RECYCLING FACILITY',
+   title: 'MPCB Recycler Weigh Station Desk',
+   icon: 'truck',
+   desc: 'Operator terminal to weigh incoming tempo handovers, detect +/-10% weight anomalies, and trigger instant UPI payouts.',
+   nameLabel: 'Operator Name & Station',
+   namePlaceholder: 'e.g. Eco-Recycling Desk (Vasai)',
+   demo: DEMO_PROFILES.recdesk
+  },
+  compliance: {
+   tag: 'BRAND PRODUCER (EPR)',
+   title: 'Brand EPR Compliance Officer',
+   icon: 'building',
+   desc: 'Monitor company-wide CPCB 70% annual targets, audit verified recycler manifests, and generate 1-click CPCB portal PDF filings.',
+   nameLabel: 'Brand / Corporate Entity',
+   namePlaceholder: 'e.g. Samsung India Electronics Pvt Ltd',
+   demo: DEMO_PROFILES.compliance
+  }
+ };
+
+ const r = roles[sel];
+
+ return col(`<div class="page landing-portal">
+  <div class="landing-hero">
+   <span class="badge">ZOMATO FOR INDIA'S E-WASTE</span>
+   <h1>Project Akrit</h1>
+   <p>A closed-loop digital manifest & instant payout network connecting informal collectors and repair shops to authorized recyclers.</p>
   </div>
 
-  <div class="stack" style="gap:12px">
-   ${roles.map(r => `
-    <button type="button" class="rolecard ${r.color}" data-act="role-pick" data-v="${r.id}">
-      <span class="ico">${ic(r.icon)}</span>
-      <span class="grow">
-        <span class="badge-tag">${r.tag}</span>
-        <b>${r.title}</b>
-        <span class="d">${r.desc}</span>
-      </span>
-      <span class="chip info" style="align-self:center;flex:none">${ic('back').replace('class="i "','class="i" style="transform:rotate(180deg)"')} Open</span>
+  <div class="eyebrow" style="text-align:center;margin-bottom:10px">STEP 1: SELECT YOUR ROLE</div>
+  <div class="role-tabs">
+   <button type="button" class="role-tab-btn ${sel==='kabadi'?'active':''}" data-act="sel-role" data-v="kabadi">
+     ${ic('truck')}<span>Collector</span>
+   </button>
+   <button type="button" class="role-tab-btn ${sel==='shop'?'active':''}" data-act="sel-role" data-v="shop">
+     ${ic('wrench')}<span>Repair Shop</span>
+   </button>
+   <button type="button" class="role-tab-btn ${sel==='recdesk'?'active':''}" data-act="sel-role" data-v="recdesk">
+     ${ic('truck')}<span>Recycler Desk</span>
+   </button>
+   <button type="button" class="role-tab-btn ${sel==='compliance'?'active':''}" data-act="sel-role" data-v="compliance">
+     ${ic('building')}<span>Brand EPR</span>
+   </button>
+  </div>
+
+  <div class="auth-box">
+   <div class="row sp" style="margin-bottom:6px">
+     <span class="eyebrow">${r.tag}</span>
+     <span class="chip ok">${ic('check')}Active Role</span>
+   </div>
+   <h2 style="font-size:1.25rem;margin-bottom:4px">${r.title}</h2>
+   <p class="muted" style="font-size:0.86rem;line-height:1.45;margin-bottom:16px">${r.desc}</p>
+
+   <form id="auth-form" class="stack" style="gap:14px" onsubmit="event.preventDefault()">
+    <div class="field">
+      <label for="f-name">${r.nameLabel}</label>
+      <input id="f-name" type="text" placeholder="${r.namePlaceholder}" value="${esc(S.ui.authName||'')}" data-bind="ui.authName" required>
+    </div>
+
+    ${sel !== 'compliance' ? `
+      <div class="field">
+        <label for="f-phone">Mobile Number (+91)</label>
+        <div class="row">
+          <span class="chip mute" style="min-height:48px;padding:0 12px;font-size:1rem">+91</span>
+          <input id="f-phone" type="tel" inputmode="numeric" maxlength="10" placeholder="98XXXXXXXX" value="${esc(S.ui.authPhone||'')}" data-bind="ui.authPhone" required>
+        </div>
+      </div>
+    ` : `
+      <div class="field">
+        <label for="f-email">Corporate Work Email</label>
+        <input id="f-email" type="email" placeholder="compliance.officer@brand.com" value="${esc(S.ui.authEmail||'')}" data-bind="ui.authEmail" required>
+      </div>
+    `}
+
+    <div class="field">
+      <label for="f-zone">Operating Ward / Location</label>
+      <select id="f-zone" data-bind="ui.authZone">
+        <option value="Dharavi" ${(S.ui.authZone==='Dharavi'||!S.ui.authZone)?'selected':''}>Dharavi, Mumbai</option>
+        <option value="Kurla" ${S.ui.authZone==='Kurla'?'selected':''}>Kurla, Mumbai</option>
+        <option value="Grant Road" ${S.ui.authZone==='Grant Road'?'selected':''}>Grant Road / Lamington Rd</option>
+        <option value="Andheri" ${S.ui.authZone==='Andheri'?'selected':''}>Andheri East / West</option>
+        <option value="Navi Mumbai" ${S.ui.authZone==='Navi Mumbai'?'selected':''}>Navi Mumbai / Turbhe</option>
+        <option value="Thane" ${S.ui.authZone==='Thane'?'selected':''}>Thane</option>
+        <option value="Vasai" ${S.ui.authZone==='Vasai'?'selected':''}>Vasai / Palghar</option>
+      </select>
+    </div>
+
+    <button type="button" class="btn btn-primary btn-block" style="min-height:50px;font-size:1.05rem;font-weight:700" data-act="auth-submit">
+      Create Profile & Enter Dashboard
     </button>
-   `).join('')}
-  </div>
+   </form>
 
-  <div style="text-align:center;margin-top:20px">
-    <button type="button" class="link" style="font-size:0.85rem" data-act="start-onboard">Want to test the full custom registration flow? Click here.</button>
+   <div class="demo-divider">
+     <span>OR TEST WITH PRE-LOADED DEMO ACCOUNT</span>
+   </div>
+
+   <button type="button" class="btn btn-ghost btn-block" style="border:1.5px dashed var(--line);min-height:46px;font-size:0.88rem" data-act="demo-login" data-v="${sel}">
+     ${ic('user')} Continue as Demo: <b>${esc(r.demo.name || r.demo.shopName || r.demo.company)}</b>
+   </button>
   </div>
  </div>`);
 }
@@ -1343,10 +1524,13 @@ const offBanner=()=>isOffline()?`<div class="offline" role="status"><div class="
 
 function viewKabadi(){
  const p=prof(),tab=S.tab.kabadi;
- const hdr=`<header class="appbar"><div class="gut"><div class="col"><div><div class="sub">${t('hello')}</div><h1>${esc(p.name||('•••'+p.phone.slice(-4)))}</h1></div>${langBar()}</div></div></header>`;
+ const banner=`<div class="card flat" style="background:var(--primary-soft);border-left:4px solid var(--primary);margin-bottom:14px;padding:12px 16px">
+   <div class="sub" style="font-size:0.75rem">${t('hello')}</div>
+   <h2 style="font-size:1.25rem">${esc(p.name||('••••'+p.phone.slice(-4)))} <span class="badge-tag" style="vertical-align:middle;margin-left:4px">${p.zone||'Dharavi'}</span></h2>
+ </div>`;
  let b='';
  if(tab==='home')b=kHome();else if(tab==='coll')b=kColl();else b=kEarn();
- return hdr+offBanner()+col(`<main class="page">${b}</main>`)+bottomNav([['home',t('home'),'home'],['coll',t('coll'),'list'],['earn',t('earn'),'rupee']],tab)+fab()}
+ return offBanner()+col(`<main class="page">${banner}${b}</main>`)+bottomNav([['home',t('home'),'home'],['coll',t('coll'),'list'],['earn',t('earn'),'rupee']],tab)+fab()}
 
 function kHome(){
  const ms=mine(),t0=sod(Date.now()),td=ms.filter(m=>m.pickupAt>=t0&&m.status!=='flagged');
@@ -1430,7 +1614,10 @@ function pickCard(pk){
 
 function viewShop(){
  const p=prof(),tab=S.tab.shop;
- const hdr=`<header class="appbar"><div class="gut"><div class="col"><div><div class="sub">${p.zone} · Green Certified</div><h1 style="font-size:1.35rem">${esc(p.shopName)}</h1></div></div></div></header>`;
+ const banner=`<div class="card flat" style="background:var(--primary-soft);border-left:4px solid var(--primary);margin-bottom:14px;padding:12px 16px">
+   <div class="sub" style="font-size:0.75rem">${p.zone||'Mumbai'} · Green Certified</div>
+   <h2 style="font-size:1.25rem">${esc(p.shopName||p.name)}</h2>
+ </div>`;
  let b='';
  if(tab==='home'){
   const ms=mine(),ms0=sod(new Date(new Date().getFullYear(),new Date().getMonth(),1)),mm=ms.filter(m=>m.pickupAt>=ms0&&m.status!=='flagged');
@@ -1442,7 +1629,7 @@ function viewShop(){
   <button type="button" class="card lift row" style="text-align:left;background:var(--primary-soft);border-color:var(--primary-ink);min-height:84px;width:100%" data-act="pu-open"><span style="width:52px;height:52px;border-radius:14px;background:var(--primary);color:#fff;display:grid;place-items:center;flex:none">${ic('truck').replace('class="i "','class="i" style="width:28px;height:28px"')}</span><span class="grow"><b style="font:800 1.15rem var(--font-head)">${t('sched')}</b><br><span class="muted">${t('sched_sub')}</span></span>${ic('back').replace('class="i "','class="i" style="transform:rotate(180deg)"')}</button>
   ${pks.map(pickCard).join('')}</div>`}
  else if(tab==='hist')b=shopHist();else b=shopBadge();
- return hdr+offBanner()+col(`<main class="page">${b}</main>`)+bottomNav([['home',t('home'),'home'],['hist',t('hist'),'list'],['badge',t('badge'),'award']],tab)+fab()}
+ return offBanner()+col(`<main class="page">${banner}${b}</main>`)+bottomNav([['home',t('home'),'home'],['hist',t('hist'),'list'],['badge',t('badge'),'award']],tab)+fab()}
 
 function histRows(){
  const f=S.ui.hf||(S.ui.hf={cat:'',rid:'',from:'',to:''});
@@ -1644,9 +1831,10 @@ function cdata(){
 function viewCompliance(){
  const p=prof(),tab=S.tab.compliance;
  const tabs=[['overview',t('ov'),'chart'],['manifests',t('mf'),'doc'],['recyclers',t('rc'),'truck'],['reports',t('rp'),'pdf'],['settings',t('st'),'settings']];
- const nav=`<header class="pnav"><div class="gut"><div class="col wide"><span class="brandmark" style="color:var(--primary-ink);font-size:1.25rem;margin-right:12px"><span style="width:32px;height:32px;border-radius:10px;background:var(--primary);color:#fff;display:grid;place-items:center">${ic('mark')}</span>Akrit</span>
+ const nav=`<div class="pnav-bar" style="background:var(--surface);border-bottom:1px solid var(--line);padding:6px 0"><div class="gut"><div class="col wide row sp">
   <nav class="tabs" aria-label="Main">${tabs.map(([k,l])=>`<button type="button" data-act="tab" data-v="${k}" ${tab===k?'aria-current="page"':''}>${l}</button>`).join('')}</nav>
-  <div class="who"><b style="color:var(--text)">${esc(p.company)}</b><br>${esc(p.name)}</div>${langBar(true)}</div></div></header>`;
+  <div class="who hide-sm" style="text-align:right"><b style="color:var(--text);font-size:0.85rem">${esc(p.company)}</b><br><small class="muted">${esc(p.name)}</small></div>
+ </div></div></div>`;
  let b='';
  if(tab==='overview')b=cOverview();else if(tab==='manifests')b=cManifests();else if(tab==='recyclers')b=cRecyclers();else if(tab==='reports')b=cReports();else b=cSettings();
  const pbar=`<nav class="pbar" aria-label="Main">${col(tabs.map(([k,l,i])=>`<button type="button" data-act="tab" data-v="${k}" ${tab===k?'aria-current="page"':''}>${ic(i)}<span>${l}</span></button>`).join(''),'wide')}</nav>`;
@@ -1793,7 +1981,7 @@ function viewRecycler(){
  }
  else b=`<div class="field"><label for="rd-r">Active Recycling Facility</label><select id="rd-r" data-bind="ui.rd.rid">${Object.values(REC).map(r=>`<option value="${r.id}" ${d.rid===r.id?'selected':''}>${r.name} (${r.base})</option>`).join('')}</select></div><div class="field"><label for="rd-q">Scan or Search Handover Manifest</label><input id="rd-q" type="search" placeholder="Search AKR-XXXX or Generator..." data-bind="ui.rd.q" value="${esc(d.q)}"></div><div id="rdlist">${rdList()}</div>`;
 
- return`<header class="appbar"><div class="gut"><div class="col"><div><div class="sub">Recycler Facility Desk</div><h1>Confirm Handovers & Scale Weighing</h1></div>${langBar()}</div></div></header>`+col(`<main class="page">${b}</main>`);
+ return col(`<main class="page"><div class="card flat" style="background:var(--primary-soft);border-left:4px solid var(--primary);margin-bottom:14px;padding:12px 16px"><div class="sub" style="font-size:0.75rem">MPCB Registered Recycling Facility Desk</div><h2 style="font-size:1.25rem">Scale Weighing Station & Payout Settlement</h2></div>${b}</main>`);
 }
 function rdDelta(m){const d=rdState(),dl=d.kg-m.wl,p=Math.abs(dl)/m.wl*100;return`${dl>=0?'+':''}${nf(dl)} kg (${(dl/m.wl*100).toFixed(1)}%) against logged weight${p>10?' · will be flagged':''}`}
 function rdAdj(dv){const d=rdState(),m=getM(d.open);if(!m)return;d.kg=Math.max(.1,Math.round((d.kg+dv)*10)/10);const a=$('#rdkg'),b=$('#rdd');if(a)a.textContent=nf(d.kg);if(b)b.textContent=rdDelta(m)}
@@ -1815,6 +2003,84 @@ function addSampleHistory(){
  render()}
 
 const ACT={
+
+ 'sel-role'(el){
+   S.ui.authRole = el.dataset.v;
+   render();
+ },
+ 'auth-submit'(){
+   const role = S.ui.authRole || 'kabadi';
+   const name = (S.ui.authName || '').trim() || (role === 'kabadi' ? 'Akrit Collector' : role === 'shop' ? 'Green Repair Shop' : role === 'recdesk' ? 'Recycler Desk' : 'Compliance Officer');
+   const phone = (S.ui.authPhone || '9820000000').trim();
+   const email = (S.ui.authEmail || 'officer@brand.com').trim();
+   const zone = S.ui.authZone || 'Dharavi';
+
+   const newProfile = {
+     id: 'u_' + Date.now().toString(36),
+     role: role,
+     name: name,
+     shopName: name,
+     company: name,
+     phone: phone,
+     email: email,
+     zone: zone,
+     named: true,
+     badgeSeen: true,
+     connected: ['r1', 'r2', 'r3'],
+     target: 1200,
+     kgPerCredit: 1
+   };
+
+   S.profiles[role] = newProfile;
+   if(role === 'recdesk'){
+     S.view = 'recycler';
+     S.role = null;
+     S.ui.rd = null;
+   } else {
+     S.role = role;
+     S.view = 'app';
+     if(role === 'compliance') S.tab.compliance = 'overview';
+     else if(role === 'kabadi') S.tab.kabadi = 'home';
+     else if(role === 'shop') S.tab.shop = 'home';
+   }
+   persist();
+   toast(`Welcome, ${name}! Profile created.`);
+   render();
+   window.scrollTo(0, 0);
+ },
+ 'demo-login'(el){
+   const role = el.dataset.v || 'kabadi';
+   const demo = DEMO_PROFILES[role];
+   if(!demo) return;
+   S.profiles[role] = { ...demo };
+   if(role === 'recdesk'){
+     S.view = 'recycler';
+     S.role = null;
+     S.ui.rd = null;
+   } else {
+     S.role = role;
+     S.view = 'app';
+     if(role === 'compliance') S.tab.compliance = 'overview';
+     else if(role === 'kabadi') S.tab.kabadi = 'home';
+     else if(role === 'shop') S.tab.shop = 'home';
+   }
+   persist();
+   toast(`Logged in as demo: ${demo.name || demo.shopName || demo.company}`);
+   render();
+   window.scrollTo(0, 0);
+ },
+ 'sign-out'(){
+   S.role = null;
+   S.view = 'select';
+   S.pub = null;
+   S.ui.rd = null;
+   S.ob = null;
+   persist();
+   toast('Signed out successfully.');
+   render();
+   window.scrollTo(0, 0);
+ },
+
  'role-menu'(){ S.ui.roleMenu = true; S.ui.fo = true; render(); },
  'role-menu-close'(el,e){ if(el.classList.contains('overlay')&&e.target.closest('[data-stop]'))return; S.ui.roleMenu = false; render(); },
  'role-pick'(el){

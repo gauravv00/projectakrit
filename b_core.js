@@ -61,6 +61,8 @@ function t(k,p){const a=T[k];let s=a?(a[LANGS.findIndex(l=>l[0]===S.lang)]||a[0]
 
 /* ================= icons ================= */
 const IC={
+ logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>',
+ wrench:'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
  camera:'<path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/>',
  call:'<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/>',
  home:'<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>',
@@ -127,16 +129,32 @@ function quarterOf(ts){const d=new Date(ts),m=d.getMonth(),y=d.getFullYear();con
  return{q,fy,start,end,label:`Q${q} FY${String(fy).slice(2)}-${String(fy+1).slice(2)}`}}
 
 /* ================= state ================= */
-const LS='akrit.v1';
-const DEFAULT_PROFILES={
+const LS='akrit.v2';
+const DEMO_PROFILES={
  kabadi:{id:'u_sunita',role:'kabadi',phone:'9820145892',name:'Sunita Kamble',zone:'Dharavi',aadhaarLast4:'4821',named:true},
- shop:{id:'u_lamington',role:'shop',phone:'9819234510',shopName:'Lamington Mobile Care',gst:'27AABCU9603R1ZM',zone:'Grant Road',badgeSeen:true,named:true},
+ shop:{id:'u_lamington',role:'shop',phone:'9819234510',shopName:'Lamington Mobile Care',name:'Lamington Mobile Care',gst:'27AABCU9603R1ZM',zone:'Grant Road',badgeSeen:true,named:true},
+ recdesk:{id:'u_eco',role:'recdesk',name:'Eco-Recycling Desk',facility:'Ecoreco Vasai',zone:'Vasai'},
  compliance:{id:'u_compliance',role:'compliance',email:'rohan.d@samsung.com',name:'Rohan Deshmukh',company:'Samsung India Electronics Pvt Ltd',idType:'CIN',idNo:'U32109DL1995PTC070624',connected:['r1','r2','r3'],target:1200,kgPerCredit:1,anonymize:false,includeSample:true}
 };
-const S={view:'select',role:null,profiles:{...DEFAULT_PROFILES},lang:'en',offline:false,loading:true,local:{m:{},p:{}},remote:{m:{},p:{}},queue:[],notified:{},reports:[],
+const S={view:'select',role:null,profiles:{},lang:'en',offline:false,loading:true,local:{m:{},p:{}},remote:{m:{},p:{}},queue:[],notified:{},reports:[],
  tab:{kabadi:'home',shop:'home',compliance:'overview'},ob:null,ui:{},db:null,dbState:'connecting',rev:0,pub:null};
 function persist(){try{localStorage.setItem(LS,JSON.stringify({profiles:S.profiles,role:S.role,lang:S.lang,local:S.local,queue:S.queue,notified:S.notified,reports:S.reports}))}catch(e){}}
-function restore(){try{const j=JSON.parse(localStorage.getItem(LS)||'null');if(j){S.profiles=(j.profiles&&Object.keys(j.profiles).length)?j.profiles:{...DEFAULT_PROFILES};S.role=j.role||null;S.lang=j.lang||'en';S.local=j.local||{m:{},p:{}};S.local.m=S.local.m||{};S.local.p=S.local.p||{};S.queue=j.queue||[];S.notified=j.notified||{};S.reports=j.reports||[]}}catch(e){}}
+function restore(){
+ try{
+  const j=JSON.parse(localStorage.getItem(LS)||'null');
+  if(j){
+   S.profiles=j.profiles||{};
+   S.role=j.role||null;
+   S.lang=j.lang||'en';
+   S.local=j.local||{m:{},p:{}};
+   S.local.m=S.local.m||{};
+   S.local.p=S.local.p||{};
+   S.queue=j.queue||[];
+   S.notified=j.notified||{};
+   S.reports=j.reports||[];
+  }
+ }catch(e){}
+}
 const prof=()=>S.role?S.profiles[S.role]:null;
 const isOffline=()=>S.offline||(typeof navigator!=='undefined'&&navigator.onLine===false);
 const bump=()=>{S.rev++};

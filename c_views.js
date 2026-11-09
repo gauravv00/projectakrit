@@ -19,39 +19,62 @@ const dbLabel=()=>({live:['Shared data','dotlive'],local:['This device only','do
 
 /* ================= unified app header ================= */
 function roleMeta(){
- if(S.view==='recycler') return { name: 'Recycler Desk', icon: 'truck' };
- if(S.role==='kabadi') return { name: prof()?.name || 'Kabadiwala', icon: 'truck' };
- if(S.role==='shop') return { name: prof()?.shopName || 'Repair Shop', icon: 'wrench' };
- if(S.role==='compliance') return { name: prof()?.company || 'Compliance', icon: 'building' };
- return { name: 'Select Persona', icon: 'user' };
+ if(S.view==='recycler') return { name: 'Eco-Recycling Desk', tag: 'MPCB Recycler · Vasai', icon: 'truck' };
+ if(S.role==='kabadi'){
+  const p = prof();
+  return { name: p?.name || 'Street Collector', tag: (p?.zone ? p.zone + ' · ' : '') + 'Collector', icon: 'truck' };
+ }
+ if(S.role==='shop'){
+  const p = prof();
+  return { name: p?.shopName || p?.name || 'Repair Shop', tag: (p?.zone ? p.zone + ' · ' : '') + 'Green Shop', icon: 'wrench' };
+ }
+ if(S.role==='compliance'){
+  const p = prof();
+  return { name: p?.company || p?.name || 'Samsung India', tag: 'Brand EPR Compliance', icon: 'building' };
+ }
+ return null;
 }
 
 function demobar(){
  const [lab,cls]=dbLabel();
- const rMeta = roleMeta();
- const isPwaReady = typeof window !== 'undefined' && !!window.deferredPwaPrompt;
+ const user = roleMeta();
+ const isLoggedIn = (S.view === 'app' && S.role) || S.view === 'recycler';
+
  return`<header class="app-header"><div class="gut"><div class="col wide nav-inner">
-  <button type="button" class="nav-brand" data-act="home" title="Go to Akrit Persona Hub">
+  <button type="button" class="nav-brand" data-act="home" title="Go to Project Akrit Home">
     <span class="brand-icon">${ic('mark')}</span>
     <span class="brand-text">Akrit <small>E-Waste</small></span>
   </button>
-  <button type="button" class="role-pill" data-act="role-menu" title="Click to switch persona">
-    ${ic(rMeta.icon)}<span>${esc(rMeta.name)}</span>${ic('chev')}
-  </button>
+
+  ${isLoggedIn ? `
+    <div class="user-badge">
+      <span class="user-avatar">${ic(user.icon)}</span>
+      <div class="user-meta">
+        <b>${esc(user.name)}</b>
+        <small>${esc(user.tag)}</small>
+      </div>
+    </div>
+  ` : ''}
+
   <div class="nav-actions">
     ${langBar()}
     <button type="button" class="nav-btn" data-act="about-open" title="Project Vision & Model">${ic('shield')}<span class="hide-sm">Vision</span></button>
     <button type="button" class="nav-btn ${S.offline?'off':''}" data-act="offline" title="Toggle Offline Simulation">
       ${ic('wifioff')}<span class="hide-sm">${S.offline?'Offline':'Online'}</span>
     </button>
-    <button type="button" class="nav-btn hide-sm" data-act="toggle-frame" title="Toggle Phone / Wide View">
-      ${ic(S.ui.wideMode?'laptop':'phone')}<span class="hide-sm">${S.ui.wideMode?'Phone View':'Wide'}</span>
-    </button>
+    ${isLoggedIn ? `
+      <button type="button" class="nav-btn" data-act="sign-out" title="Sign out of this user profile" style="color:var(--bad);border-color:var(--bad-soft)">
+        ${ic('logout')}<span class="hide-sm">Sign Out</span>
+      </button>
+    ` : `
+      <button type="button" class="btn btn-primary btn-sm" data-act="home">Sign In</button>
+    `}
     <span class="status-pill ${cls}" title="${lab}">
       <span class="status-dot"></span><span class="hide-sm">${lab}</span>
     </span>
   </div>
- </div></div></header>`}
+ </div></div></header>`
+}
 
 function render(){
  let h='';
@@ -62,10 +85,6 @@ function render(){
  else if(S.role==='kabadi')h+=viewKabadi();
  else if(S.role==='shop')h+=viewShop();
  else if(S.role==='compliance')h+=viewCompliance();
-
- if(typeof document !== 'undefined' && document.body){
-   document.body.classList.toggle('wide-mode', !!(S.ui && S.ui.wideMode));
- }
  app.innerHTML = demobar() + `<div class="viewport-scroll">${h}</div>` + overlays();
  after();
 }
@@ -94,36 +113,126 @@ function animateDial(){
 
 /* ================= role select & onboarding ================= */
 function viewSelect(){
- const roles = [
-  { id: 'kabadi', tag: 'FIRST-MILE COLLECTOR', title: 'Kabadiwala', icon: 'truck', desc: 'Log street scrap, get fair rates (+38% vs middleman), instant UPI payout & Digital Manifest.', color: 'k' },
-  { id: 'shop', tag: 'REPAIR SHOP OWNER', title: 'Electronic Repair Shop', icon: 'wrench', desc: 'Schedule doorstep tempo pickups for PCB scrap & earn your verifiable Green Shop badge.', color: 's' },
-  { id: 'recdesk', tag: 'RECYCLING FACILITY', title: 'Recycler Weigh Scale', icon: 'truck', desc: 'Simulate industrial scale weighing, verify weight tolerance (<10%), and approve instant UPI payouts.', color: 'r' },
-  { id: 'compliance', tag: 'BRAND COMPLIANCE', title: 'Brand EPR Portfolio', icon: 'building', desc: 'Track 70% CPCB recycling targets, audit verified manifests & generate 1-click CPCB reports.', color: 'c' }
- ];
+ const sel = S.ui.authRole || 'kabadi';
 
- return col(`<div class="page" style="padding-top:10px">
-  <div class="card flat" style="background:var(--primary-soft);border-left:4px solid var(--primary);margin-bottom:18px;padding:16px">
-   <div class="eyebrow" style="color:var(--primary-ink);font-weight:800;margin-bottom:4px">Zomato for India's E-Waste</div>
-   <h2 style="font-size:1.15rem;margin-bottom:4px">Project Akrit Prototype</h2>
-   <p class="muted" style="font-size:0.86rem;line-height:1.4">Select any of the 4 interactive personas below to experience the closed-loop e-waste supply chain:</p>
+ const roles = {
+  kabadi: {
+   tag: 'FIRST-MILE COLLECTOR',
+   title: 'Kabadiwala (Street Collector)',
+   icon: 'truck',
+   desc: 'Get transparent CPCB floor rates (+38% vs middlemen), instant UPI payout confirmation, and QR digital manifests.',
+   nameLabel: 'Your Full Name',
+   namePlaceholder: 'e.g. Ramesh Patil or Sunita Kamble',
+   demo: DEMO_PROFILES.kabadi
+  },
+  shop: {
+   tag: 'REPAIR ENTERPRISE',
+   title: 'Electronics Repair Shop Owner',
+   icon: 'wrench',
+   desc: 'Monetize circuit boards & component scrap, book doorstep tempo pickups, and display your verified Green Shop Certificate.',
+   nameLabel: 'Shop / Business Name',
+   namePlaceholder: 'e.g. Lamington Mobile Care',
+   demo: DEMO_PROFILES.shop
+  },
+  recdesk: {
+   tag: 'RECYCLING FACILITY',
+   title: 'MPCB Recycler Weigh Station Desk',
+   icon: 'truck',
+   desc: 'Operator terminal to weigh incoming tempo handovers, detect +/-10% weight anomalies, and trigger instant UPI payouts.',
+   nameLabel: 'Operator Name & Station',
+   namePlaceholder: 'e.g. Eco-Recycling Desk (Vasai)',
+   demo: DEMO_PROFILES.recdesk
+  },
+  compliance: {
+   tag: 'BRAND PRODUCER (EPR)',
+   title: 'Brand EPR Compliance Officer',
+   icon: 'building',
+   desc: 'Monitor company-wide CPCB 70% annual targets, audit verified recycler manifests, and generate 1-click CPCB portal PDF filings.',
+   nameLabel: 'Brand / Corporate Entity',
+   namePlaceholder: 'e.g. Samsung India Electronics Pvt Ltd',
+   demo: DEMO_PROFILES.compliance
+  }
+ };
+
+ const r = roles[sel];
+
+ return col(`<div class="page landing-portal">
+  <div class="landing-hero">
+   <span class="badge">ZOMATO FOR INDIA'S E-WASTE</span>
+   <h1>Project Akrit</h1>
+   <p>A closed-loop digital manifest & instant payout network connecting informal collectors and repair shops to authorized recyclers.</p>
   </div>
 
-  <div class="stack" style="gap:12px">
-   ${roles.map(r => `
-    <button type="button" class="rolecard ${r.color}" data-act="role-pick" data-v="${r.id}">
-      <span class="ico">${ic(r.icon)}</span>
-      <span class="grow">
-        <span class="badge-tag">${r.tag}</span>
-        <b>${r.title}</b>
-        <span class="d">${r.desc}</span>
-      </span>
-      <span class="chip info" style="align-self:center;flex:none">${ic('back').replace('class="i "','class="i" style="transform:rotate(180deg)"')} Open</span>
+  <div class="eyebrow" style="text-align:center;margin-bottom:10px">STEP 1: SELECT YOUR ROLE</div>
+  <div class="role-tabs">
+   <button type="button" class="role-tab-btn ${sel==='kabadi'?'active':''}" data-act="sel-role" data-v="kabadi">
+     ${ic('truck')}<span>Collector</span>
+   </button>
+   <button type="button" class="role-tab-btn ${sel==='shop'?'active':''}" data-act="sel-role" data-v="shop">
+     ${ic('wrench')}<span>Repair Shop</span>
+   </button>
+   <button type="button" class="role-tab-btn ${sel==='recdesk'?'active':''}" data-act="sel-role" data-v="recdesk">
+     ${ic('truck')}<span>Recycler Desk</span>
+   </button>
+   <button type="button" class="role-tab-btn ${sel==='compliance'?'active':''}" data-act="sel-role" data-v="compliance">
+     ${ic('building')}<span>Brand EPR</span>
+   </button>
+  </div>
+
+  <div class="auth-box">
+   <div class="row sp" style="margin-bottom:6px">
+     <span class="eyebrow">${r.tag}</span>
+     <span class="chip ok">${ic('check')}Active Role</span>
+   </div>
+   <h2 style="font-size:1.25rem;margin-bottom:4px">${r.title}</h2>
+   <p class="muted" style="font-size:0.86rem;line-height:1.45;margin-bottom:16px">${r.desc}</p>
+
+   <form id="auth-form" class="stack" style="gap:14px" onsubmit="event.preventDefault()">
+    <div class="field">
+      <label for="f-name">${r.nameLabel}</label>
+      <input id="f-name" type="text" placeholder="${r.namePlaceholder}" value="${esc(S.ui.authName||'')}" data-bind="ui.authName" required>
+    </div>
+
+    ${sel !== 'compliance' ? `
+      <div class="field">
+        <label for="f-phone">Mobile Number (+91)</label>
+        <div class="row">
+          <span class="chip mute" style="min-height:48px;padding:0 12px;font-size:1rem">+91</span>
+          <input id="f-phone" type="tel" inputmode="numeric" maxlength="10" placeholder="98XXXXXXXX" value="${esc(S.ui.authPhone||'')}" data-bind="ui.authPhone" required>
+        </div>
+      </div>
+    ` : `
+      <div class="field">
+        <label for="f-email">Corporate Work Email</label>
+        <input id="f-email" type="email" placeholder="compliance.officer@brand.com" value="${esc(S.ui.authEmail||'')}" data-bind="ui.authEmail" required>
+      </div>
+    `}
+
+    <div class="field">
+      <label for="f-zone">Operating Ward / Location</label>
+      <select id="f-zone" data-bind="ui.authZone">
+        <option value="Dharavi" ${(S.ui.authZone==='Dharavi'||!S.ui.authZone)?'selected':''}>Dharavi, Mumbai</option>
+        <option value="Kurla" ${S.ui.authZone==='Kurla'?'selected':''}>Kurla, Mumbai</option>
+        <option value="Grant Road" ${S.ui.authZone==='Grant Road'?'selected':''}>Grant Road / Lamington Rd</option>
+        <option value="Andheri" ${S.ui.authZone==='Andheri'?'selected':''}>Andheri East / West</option>
+        <option value="Navi Mumbai" ${S.ui.authZone==='Navi Mumbai'?'selected':''}>Navi Mumbai / Turbhe</option>
+        <option value="Thane" ${S.ui.authZone==='Thane'?'selected':''}>Thane</option>
+        <option value="Vasai" ${S.ui.authZone==='Vasai'?'selected':''}>Vasai / Palghar</option>
+      </select>
+    </div>
+
+    <button type="button" class="btn btn-primary btn-block" style="min-height:50px;font-size:1.05rem;font-weight:700" data-act="auth-submit">
+      Create Profile & Enter Dashboard
     </button>
-   `).join('')}
-  </div>
+   </form>
 
-  <div style="text-align:center;margin-top:20px">
-    <button type="button" class="link" style="font-size:0.85rem" data-act="start-onboard">Want to test the full custom registration flow? Click here.</button>
+   <div class="demo-divider">
+     <span>OR TEST WITH PRE-LOADED DEMO ACCOUNT</span>
+   </div>
+
+   <button type="button" class="btn btn-ghost btn-block" style="border:1.5px dashed var(--line);min-height:46px;font-size:0.88rem" data-act="demo-login" data-v="${sel}">
+     ${ic('user')} Continue as Demo: <b>${esc(r.demo.name || r.demo.shopName || r.demo.company)}</b>
+   </button>
   </div>
  </div>`);
 }
@@ -179,10 +288,13 @@ const offBanner=()=>isOffline()?`<div class="offline" role="status"><div class="
 
 function viewKabadi(){
  const p=prof(),tab=S.tab.kabadi;
- const hdr=`<header class="appbar"><div class="gut"><div class="col"><div><div class="sub">${t('hello')}</div><h1>${esc(p.name||('•••'+p.phone.slice(-4)))}</h1></div>${langBar()}</div></div></header>`;
+ const banner=`<div class="card flat" style="background:var(--primary-soft);border-left:4px solid var(--primary);margin-bottom:14px;padding:12px 16px">
+   <div class="sub" style="font-size:0.75rem">${t('hello')}</div>
+   <h2 style="font-size:1.25rem">${esc(p.name||('••••'+p.phone.slice(-4)))} <span class="badge-tag" style="vertical-align:middle;margin-left:4px">${p.zone||'Dharavi'}</span></h2>
+ </div>`;
  let b='';
  if(tab==='home')b=kHome();else if(tab==='coll')b=kColl();else b=kEarn();
- return hdr+offBanner()+col(`<main class="page">${b}</main>`)+bottomNav([['home',t('home'),'home'],['coll',t('coll'),'list'],['earn',t('earn'),'rupee']],tab)+fab()}
+ return offBanner()+col(`<main class="page">${banner}${b}</main>`)+bottomNav([['home',t('home'),'home'],['coll',t('coll'),'list'],['earn',t('earn'),'rupee']],tab)+fab()}
 
 function kHome(){
  const ms=mine(),t0=sod(Date.now()),td=ms.filter(m=>m.pickupAt>=t0&&m.status!=='flagged');
@@ -266,7 +378,10 @@ function pickCard(pk){
 
 function viewShop(){
  const p=prof(),tab=S.tab.shop;
- const hdr=`<header class="appbar"><div class="gut"><div class="col"><div><div class="sub">${p.zone} · Green Certified</div><h1 style="font-size:1.35rem">${esc(p.shopName)}</h1></div></div></div></header>`;
+ const banner=`<div class="card flat" style="background:var(--primary-soft);border-left:4px solid var(--primary);margin-bottom:14px;padding:12px 16px">
+   <div class="sub" style="font-size:0.75rem">${p.zone||'Mumbai'} · Green Certified</div>
+   <h2 style="font-size:1.25rem">${esc(p.shopName||p.name)}</h2>
+ </div>`;
  let b='';
  if(tab==='home'){
   const ms=mine(),ms0=sod(new Date(new Date().getFullYear(),new Date().getMonth(),1)),mm=ms.filter(m=>m.pickupAt>=ms0&&m.status!=='flagged');
@@ -278,7 +393,7 @@ function viewShop(){
   <button type="button" class="card lift row" style="text-align:left;background:var(--primary-soft);border-color:var(--primary-ink);min-height:84px;width:100%" data-act="pu-open"><span style="width:52px;height:52px;border-radius:14px;background:var(--primary);color:#fff;display:grid;place-items:center;flex:none">${ic('truck').replace('class="i "','class="i" style="width:28px;height:28px"')}</span><span class="grow"><b style="font:800 1.15rem var(--font-head)">${t('sched')}</b><br><span class="muted">${t('sched_sub')}</span></span>${ic('back').replace('class="i "','class="i" style="transform:rotate(180deg)"')}</button>
   ${pks.map(pickCard).join('')}</div>`}
  else if(tab==='hist')b=shopHist();else b=shopBadge();
- return hdr+offBanner()+col(`<main class="page">${b}</main>`)+bottomNav([['home',t('home'),'home'],['hist',t('hist'),'list'],['badge',t('badge'),'award']],tab)+fab()}
+ return offBanner()+col(`<main class="page">${banner}${b}</main>`)+bottomNav([['home',t('home'),'home'],['hist',t('hist'),'list'],['badge',t('badge'),'award']],tab)+fab()}
 
 function histRows(){
  const f=S.ui.hf||(S.ui.hf={cat:'',rid:'',from:'',to:''});

@@ -1,5 +1,5 @@
 // Akrit Service Worker - PWA & Offline Engine
-const CACHE_NAME = 'akrit-pwa-v1';
+const CACHE_NAME = 'akrit-pwa-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',

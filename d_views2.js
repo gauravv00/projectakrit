@@ -8,9 +8,10 @@ function cdata(){
 function viewCompliance(){
  const p=prof(),tab=S.tab.compliance;
  const tabs=[['overview',t('ov'),'chart'],['manifests',t('mf'),'doc'],['recyclers',t('rc'),'truck'],['reports',t('rp'),'pdf'],['settings',t('st'),'settings']];
- const nav=`<header class="pnav"><div class="gut"><div class="col wide"><span class="brandmark" style="color:var(--primary-ink);font-size:1.25rem;margin-right:12px"><span style="width:32px;height:32px;border-radius:10px;background:var(--primary);color:#fff;display:grid;place-items:center">${ic('mark')}</span>Akrit</span>
+ const nav=`<div class="pnav-bar" style="background:var(--surface);border-bottom:1px solid var(--line);padding:6px 0"><div class="gut"><div class="col wide row sp">
   <nav class="tabs" aria-label="Main">${tabs.map(([k,l])=>`<button type="button" data-act="tab" data-v="${k}" ${tab===k?'aria-current="page"':''}>${l}</button>`).join('')}</nav>
-  <div class="who"><b style="color:var(--text)">${esc(p.company)}</b><br>${esc(p.name)}</div>${langBar(true)}</div></div></header>`;
+  <div class="who hide-sm" style="text-align:right"><b style="color:var(--text);font-size:0.85rem">${esc(p.company)}</b><br><small class="muted">${esc(p.name)}</small></div>
+ </div></div></div>`;
  let b='';
  if(tab==='overview')b=cOverview();else if(tab==='manifests')b=cManifests();else if(tab==='recyclers')b=cRecyclers();else if(tab==='reports')b=cReports();else b=cSettings();
  const pbar=`<nav class="pbar" aria-label="Main">${col(tabs.map(([k,l,i])=>`<button type="button" data-act="tab" data-v="${k}" ${tab===k?'aria-current="page"':''}>${ic(i)}<span>${l}</span></button>`).join(''),'wide')}</nav>`;
@@ -157,7 +158,7 @@ function viewRecycler(){
  }
  else b=`<div class="field"><label for="rd-r">Active Recycling Facility</label><select id="rd-r" data-bind="ui.rd.rid">${Object.values(REC).map(r=>`<option value="${r.id}" ${d.rid===r.id?'selected':''}>${r.name} (${r.base})</option>`).join('')}</select></div><div class="field"><label for="rd-q">Scan or Search Handover Manifest</label><input id="rd-q" type="search" placeholder="Search AKR-XXXX or Generator..." data-bind="ui.rd.q" value="${esc(d.q)}"></div><div id="rdlist">${rdList()}</div>`;
 
- return`<header class="appbar"><div class="gut"><div class="col"><div><div class="sub">Recycler Facility Desk</div><h1>Confirm Handovers & Scale Weighing</h1></div>${langBar()}</div></div></header>`+col(`<main class="page">${b}</main>`);
+ return col(`<main class="page"><div class="card flat" style="background:var(--primary-soft);border-left:4px solid var(--primary);margin-bottom:14px;padding:12px 16px"><div class="sub" style="font-size:0.75rem">MPCB Registered Recycling Facility Desk</div><h2 style="font-size:1.25rem">Scale Weighing Station & Payout Settlement</h2></div>${b}</main>`);
 }
 function rdDelta(m){const d=rdState(),dl=d.kg-m.wl,p=Math.abs(dl)/m.wl*100;return`${dl>=0?'+':''}${nf(dl)} kg (${(dl/m.wl*100).toFixed(1)}%) against logged weight${p>10?' · will be flagged':''}`}
 function rdAdj(dv){const d=rdState(),m=getM(d.open);if(!m)return;d.kg=Math.max(.1,Math.round((d.kg+dv)*10)/10);const a=$('#rdkg'),b=$('#rdd');if(a)a.textContent=nf(d.kg);if(b)b.textContent=rdDelta(m)}
@@ -179,6 +180,84 @@ function addSampleHistory(){
  render()}
 
 const ACT={
+
+ 'sel-role'(el){
+   S.ui.authRole = el.dataset.v;
+   render();
+ },
+ 'auth-submit'(){
+   const role = S.ui.authRole || 'kabadi';
+   const name = (S.ui.authName || '').trim() || (role === 'kabadi' ? 'Akrit Collector' : role === 'shop' ? 'Green Repair Shop' : role === 'recdesk' ? 'Recycler Desk' : 'Compliance Officer');
+   const phone = (S.ui.authPhone || '9820000000').trim();
+   const email = (S.ui.authEmail || 'officer@brand.com').trim();
+   const zone = S.ui.authZone || 'Dharavi';
+
+   const newProfile = {
+     id: 'u_' + Date.now().toString(36),
+     role: role,
+     name: name,
+     shopName: name,
+     company: name,
+     phone: phone,
+     email: email,
+     zone: zone,
+     named: true,
+     badgeSeen: true,
+     connected: ['r1', 'r2', 'r3'],
+     target: 1200,
+     kgPerCredit: 1
+   };
+
+   S.profiles[role] = newProfile;
+   if(role === 'recdesk'){
+     S.view = 'recycler';
+     S.role = null;
+     S.ui.rd = null;
+   } else {
+     S.role = role;
+     S.view = 'app';
+     if(role === 'compliance') S.tab.compliance = 'overview';
+     else if(role === 'kabadi') S.tab.kabadi = 'home';
+     else if(role === 'shop') S.tab.shop = 'home';
+   }
+   persist();
+   toast(`Welcome, ${name}! Profile created.`);
+   render();
+   window.scrollTo(0, 0);
+ },
+ 'demo-login'(el){
+   const role = el.dataset.v || 'kabadi';
+   const demo = DEMO_PROFILES[role];
+   if(!demo) return;
+   S.profiles[role] = { ...demo };
+   if(role === 'recdesk'){
+     S.view = 'recycler';
+     S.role = null;
+     S.ui.rd = null;
+   } else {
+     S.role = role;
+     S.view = 'app';
+     if(role === 'compliance') S.tab.compliance = 'overview';
+     else if(role === 'kabadi') S.tab.kabadi = 'home';
+     else if(role === 'shop') S.tab.shop = 'home';
+   }
+   persist();
+   toast(`Logged in as demo: ${demo.name || demo.shopName || demo.company}`);
+   render();
+   window.scrollTo(0, 0);
+ },
+ 'sign-out'(){
+   S.role = null;
+   S.view = 'select';
+   S.pub = null;
+   S.ui.rd = null;
+   S.ob = null;
+   persist();
+   toast('Signed out successfully.');
+   render();
+   window.scrollTo(0, 0);
+ },
+
  'role-menu'(){ S.ui.roleMenu = true; S.ui.fo = true; render(); },
  'role-menu-close'(el,e){ if(el.classList.contains('overlay')&&e.target.closest('[data-stop]'))return; S.ui.roleMenu = false; render(); },
  'role-pick'(el){
