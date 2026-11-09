@@ -1,0 +1,17 @@
+# OS generated
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Python
+__pycache__/
+*.pyc
+
+# Antigravity/Gemini
+.gemini/

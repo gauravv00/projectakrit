@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0D5C63">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="description" content="Akrit - Digital E-Waste Supply Chain & Digital Manifest Layer for India's Informal Recycling Sector">
+<title>Akrit — Digital E-Waste Supply Chain</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+Devanagari:wght@400;600;700&family=Nunito:wght@600;700;800&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<style>
+/* Layout concept: one shared component set, three role themes.
+   Kabadiwala and shop owner get a single 480px column with a bottom bar; the compliance officer gets a wide, data-dense workspace.
+   Deep teal carries structure, amber marks the one action that matters on each screen. */
+:root{
+  --bg:#F9F7F4; --surface:#FFFFFF; --surface2:#F1EEE8; --line:#E0DACF; --text:#1B2829; --muted:#566466;
+  --primary:#0D5C63; --on-primary:#FFFFFF; --primary-ink:#0D5C63; --primary-soft:#DCEDEE;
+  --amber:#F4A261; --on-amber:#2E1B00; --amber-ink:#8A4B00; --amber-soft:#FCEBD8; --amber-strong:#C97420;
+  --ok:#17653D; --ok-soft:#DDF1E5; --ok-strong:#1E8450; --bad:#B3261E; --bad-soft:#FBE3E0;
+  --sea:#D9E9EA; --land:#F1EEE8; --banner-bg:#2B3638; --banner-fg:#F1F5F4;
+  --paper:#FFFDF8; --paper-ink:#1B2829; --paper-muted:#5A6668; --paper-line:#D8D1C3;
+  --shadow:0 1px 2px rgba(13,40,43,.06),0 6px 18px rgba(13,40,43,.07);
+  --font-head:'Nunito','Noto Sans Devanagari',system-ui,sans-serif;
+  --font-body:'Inter','Noto Sans Devanagari',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --font-mono:ui-monospace,'SF Mono','Cascadia Mono',Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0E1819; --surface:#152426; --surface2:#1B2F32; --line:#2A4144; --text:#E7EFEE; --muted:#9DB1B3;
+  --primary-ink:#7AD0D7; --primary-soft:#12383C; --amber-ink:#F4B07A; --amber-soft:#3A2A15; --amber-strong:#F4A261;
+  --ok:#72D9A3; --ok-soft:#123524; --ok-strong:#4CC287; --bad:#FF9B92; --bad-soft:#3D1B19;
+  --sea:#102A2D; --land:#152426; --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.35); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1819; --surface:#152426; --surface2:#1B2F32; --line:#2A4144; --text:#E7EFEE; --muted:#9DB1B3;
+  --primary-ink:#7AD0D7; --primary-soft:#12383C; --amber-ink:#F4B07A; --amber-soft:#3A2A15; --amber-strong:#F4A261;
+  --ok:#72D9A3; --ok-soft:#123524; --ok-strong:#4CC287; --bad:#FF9B92; --bad-soft:#3D1B19;
+  --sea:#102A2D; --land:#152426; --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.35); color-scheme:dark}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:400 1rem/1.5 var(--font-body);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+h1,h2,h3,h4{font-family:var(--font-head);margin:0;line-height:1.2;text-wrap:balance}
+p{margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--primary-ink)}
+:focus-visible{outline:3px solid var(--amber-strong);outline-offset:2px;border-radius:6px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.gut{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.col{width:100%;max-width:480px;margin:0 auto}
+.col.wide{max-width:1240px}
+.col.mid{max-width:760px}
+.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.num{font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.eyebrow{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.row{display:flex;align-items:center;gap:10px}
+.row.sp{justify-content:space-between}
+.row.wrap{flex-wrap:wrap}
+.stack{display:flex;flex-direction:column;gap:12px}
+.grow{flex:1;min-width:0}
+svg.i{width:1.25em;height:1.25em;flex:none;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-.25em}
+
+/* demo bar */
+.demobar{background:var(--surface2);border-bottom:1px solid var(--line);font-size:.78rem}
+.demobar .col{display:flex;flex-wrap:wrap;align-items:center;gap:2px 6px;min-height:44px}
+.demobar .col.wide,.demobar .col{max-width:1240px}
+.demobar button{background:none;border:0;min-height:44px;padding:0 8px;color:var(--primary-ink);font-weight:600;font-size:.78rem;display:inline-flex;align-items:center;gap:6px}
+.demobar button[aria-pressed="true"]{background:var(--primary);color:var(--on-primary);border-radius:8px}
+.demobar .tag{color:var(--muted)}
+.dotlive{width:8px;height:8px;border-radius:50%;background:var(--ok-strong);display:inline-block}
+.dotlive.off{background:var(--amber-strong)}
+
+/* app bars */
+.appbar{background:var(--primary);color:var(--on-primary)}
+.appbar .col{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:64px;padding-block:8px}
+.appbar .sub{font-size:.8rem;opacity:.85}
+.appbar h1{font-size:1.25rem;font-weight:800}
+.brandmark{display:inline-flex;align-items:center;gap:10px;font:800 1.4rem var(--font-head)}
+.lang{display:inline-flex;background:rgba(255,255,255,.14);border-radius:12px;padding:2px}
+.lang button{min-width:48px;min-height:44px;border:0;background:none;color:inherit;border-radius:10px;font-weight:700;font-size:.95rem}
+.lang button[aria-pressed="true"]{background:var(--surface);color:var(--primary-ink)}
+.lang.dark{background:var(--surface2)}
+.lang.dark button{color:var(--text)}
+.offline{background:var(--banner-bg);color:var(--banner-fg);font-size:.82rem}
+.offline .col{display:flex;align-items:center;gap:8px;min-height:36px}
+.page{padding-block:16px 150px}
+.page.pc{padding-block:20px 120px}
+
+/* surfaces */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px}
+.card.flat{box-shadow:none}
+.card.lift{box-shadow:var(--shadow)}
+.card h3{font-size:1.05rem}
+.h1{font-size:1.5rem;font-weight:800}
+.h2{font-size:1.15rem;font-weight:800}
+hr{border:0;border-top:1px solid var(--line);margin:12px 0}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 20px;border-radius:12px;border:1.5px solid transparent;font-weight:700;font-size:1rem;text-decoration:none;text-align:center}
+.btn-primary{background:var(--primary);color:var(--on-primary)}
+.btn-amber{background:var(--amber);color:var(--on-amber)}
+.btn-ghost{background:var(--surface);border-color:var(--line);color:var(--text)}
+.btn-outline{background:transparent;border-color:var(--primary-ink);color:var(--primary-ink)}
+.btn-wa{background:#1F8F4A;color:#fff}
+.btn-block{width:100%}
+.btn-sm{min-height:44px;padding:0 14px;font-size:.9rem;border-radius:10px}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.link{background:none;border:0;color:var(--primary-ink);font-weight:700;text-decoration:underline;min-height:48px;padding:0 8px}
+
+/* chips */
+.chip{display:inline-flex;align-items:center;gap:5px;padding:3px 10px 3px 8px;border-radius:99px;font-size:.78rem;font-weight:700;white-space:nowrap;line-height:1.4}
+.chip svg.i{width:1em;height:1em;stroke-width:2.6}
+.chip.ok{background:var(--ok-soft);color:var(--ok)}
+.chip.warn{background:var(--amber-soft);color:var(--amber-ink)}
+.chip.bad{background:var(--bad-soft);color:var(--bad)}
+.chip.info{background:var(--primary-soft);color:var(--primary-ink)}
+.chip.mute{background:var(--surface2);color:var(--muted)}
+
+/* forms */
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.field>label,.lbl{font-weight:600;font-size:.9rem}
+.field .hint{font-size:.82rem;color:var(--muted)}
+input[type=text],input[type=tel],input[type=email],input[type=date],input[type=number],input[type=search],select,textarea{width:100%;min-height:52px;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;background:var(--surface);font-size:1rem}
+textarea{min-height:90px;resize:vertical}
+input:focus,select:focus,textarea:focus{border-color:var(--primary-ink);outline:none;box-shadow:0 0 0 3px var(--primary-soft)}
+.err{color:var(--bad);font-size:.88rem;font-weight:600;min-height:1.3em}
+.otp{letter-spacing:.5em;text-align:center;font:700 1.6rem var(--font-mono)}
+.photo-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:150px;border:2px dashed var(--primary-ink);border-radius:16px;background:var(--surface);color:var(--primary-ink);font-weight:700;text-align:center;padding:16px;position:relative;cursor:pointer}
+.photo-btn:focus-within{outline:3px solid var(--amber-strong);outline-offset:2px}
+.photo-btn input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.photo-btn img{max-height:200px;border-radius:12px}
+.prog{height:8px;border-radius:99px;background:var(--surface2);overflow:hidden}
+.prog>i{display:block;height:100%;background:var(--primary);border-radius:99px;transition:width .4s}
+.prog.amber>i{background:var(--amber-strong)}
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.seg button{min-height:48px;padding:0 16px;border:1.5px solid var(--line);border-radius:12px;background:var(--surface);font-weight:600}
+.seg button[aria-pressed="true"],.seg button[aria-checked="true"]{border-color:var(--primary-ink);background:var(--primary-soft);color:var(--primary-ink)}
+input[type=range]{width:100%;min-height:48px;accent-color:var(--primary)}
+.check{display:flex;align-items:center;gap:10px;min-height:48px;font-weight:500}
+.check input{width:22px;height:22px;accent-color:var(--primary)}
+.switch{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:52px}
+.switch button{position:relative;width:56px;height:32px;border-radius:99px;border:0;background:var(--line);flex:none}
+.switch button::after{content:'';position:absolute;top:4px;left:4px;width:24px;height:24px;border-radius:50%;background:#fff;transition:transform .2s}
+.switch button[aria-checked="true"]{background:var(--primary)}
+.switch button[aria-checked="true"]::after{transform:translateX(24px)}
+
+/* role select */
+.rolecard{display:flex;align-items:center;gap:16px;width:100%;text-align:left;padding:18px;border:1.5px solid var(--line);border-radius:18px;background:var(--surface);min-height:104px;position:relative}
+.rolecard:hover,.rolecard:focus-visible{border-color:var(--primary-ink)}
+.rolecard .ico{width:64px;height:64px;border-radius:16px;display:grid;place-items:center;flex:none;background:var(--primary-soft);color:var(--primary-ink)}
+.rolecard .ico svg{width:34px;height:34px}
+.rolecard.s .ico{background:var(--amber-soft);color:var(--amber-ink)}
+.rolecard.c .ico{background:var(--surface2);color:var(--text)}
+.rolecard b{font:800 1.2rem var(--font-head);display:block}
+.rolecard span.d{color:var(--muted);font-size:.95rem}
+.rolecard .cont{position:absolute;right:14px;top:12px}
+
+/* kabadiwala */
+.cta-big{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;width:100%;min-height:max(220px,36vh);border:0;border-radius:22px;background:var(--amber);color:var(--on-amber);text-align:center;padding:24px 16px;box-shadow:0 8px 0 var(--amber-strong)}
+.cta-big:active{transform:translateY(4px);box-shadow:0 4px 0 var(--amber-strong)}
+.cta-big svg{width:56px;height:56px;stroke-width:1.8}
+.cta-big b{font:800 1.7rem/1.15 var(--font-head)}
+.cta-big span{font-weight:600;opacity:.85}
+.stats{display:grid;grid-template-columns:1.4fr 1fr;gap:12px}
+.stat .v{font:800 2rem/1.1 var(--font-head);font-variant-numeric:tabular-nums}
+.stat.big .v{font-size:2.5rem}
+.stat .l{color:var(--muted);font-size:.85rem;margin-top:2px}
+.motiv .track{display:flex;height:22px;border-radius:99px;overflow:hidden;background:var(--surface2);margin:10px 0 6px}
+.motiv .a{background:var(--muted);opacity:.55}
+.motiv .b{background:var(--primary);transition:width .6s}
+.motiv .legend{display:flex;justify-content:space-between;gap:8px;font-size:.8rem;color:var(--muted)}
+.motiv .extra{font:800 1.25rem var(--font-head);color:var(--ok)}
+.catgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.cat{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:128px;padding:12px 4px;border-radius:16px;border:2px solid var(--line);background:var(--surface)}
+.cat svg{width:46px;height:46px;stroke:var(--primary-ink);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.cat b{font:800 1.25rem var(--font-head)}
+.cat small{color:var(--muted);font-size:.72rem}
+.cat[aria-pressed="true"]{border-color:var(--primary-ink);background:var(--primary-soft)}
+.stepper{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.stepper button{width:84px;height:84px;border-radius:50%;border:2px solid var(--primary-ink);background:var(--surface);color:var(--primary-ink);display:grid;place-items:center;touch-action:manipulation}
+.stepper button svg{width:36px;height:36px}
+.stepper button:active{background:var(--primary-soft)}
+.stepper output{display:block;text-align:center;font:800 3.2rem/1 var(--font-head);font-variant-numeric:tabular-nums}
+.stepper small{display:block;text-align:center;color:var(--muted);font-weight:600}
+.steps{display:flex;gap:6px}
+.steps i{flex:1;height:6px;border-radius:99px;background:var(--line)}
+.steps i.on{background:var(--primary)}
+.thumb{width:56px;height:56px;border-radius:12px;object-fit:cover;background:var(--surface2);flex:none;display:grid;place-items:center;color:var(--muted)}
+.thumb svg{width:26px;height:26px}
+.item{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;min-height:76px}
+.item .t{font-weight:700}
+.nav{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding:0 max(0px,env(safe-area-inset-left,0px)) env(safe-area-inset-bottom,0px) max(0px,env(safe-area-inset-right,0px));z-index:20}
+.nav .col{display:flex}
+.nav button{flex:1;min-height:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:0;background:none;color:var(--muted);font-weight:700;font-size:.8rem}
+.nav button svg{width:26px;height:26px}
+.nav button[aria-current="page"]{color:var(--primary-ink)}
+.nav button[aria-current="page"] svg{stroke-width:2.6}
+.fabwrap{position:fixed;left:0;right:0;bottom:calc(72px + env(safe-area-inset-bottom,0px));z-index:21;pointer-events:none;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.fabwrap .col{display:flex;justify-content:flex-end}
+.fab{pointer-events:auto;display:inline-flex;align-items:center;gap:8px;min-height:52px;padding:0 18px;border-radius:99px;border:0;background:var(--primary);color:var(--on-primary);font-weight:800;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+
+/* overlays */
+.overlay{position:fixed;inset:0;z-index:40;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch}
+.overlay .top{position:sticky;top:0;z-index:2;background:var(--bg);border-bottom:1px solid var(--line)}
+.overlay .top .col{display:flex;align-items:center;gap:8px;min-height:60px;padding-top:env(safe-area-inset-top,0px)}
+.overlay .top h2{font-size:1.1rem;flex:1}
+.overlay.dim{background:rgba(8,20,22,.55);display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--surface);width:100%;max-width:520px;border-radius:22px 22px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom,0px));max-height:92vh;overflow:auto}
+.modal{background:var(--surface);width:100%;max-width:620px;border-radius:20px;padding:22px;margin:auto;max-height:92vh;overflow:auto;border:1px solid var(--line)}
+.overlay.dim.center{align-items:center;padding:16px}
+.success{text-align:center;padding-block:20px 40px}
+.coins{position:relative;width:130px;height:112px;margin:0 auto 12px}
+.coin{position:absolute;left:50%;width:92px;height:28px;margin-left:-46px;border-radius:50%;background:linear-gradient(#F8CB8A,#E39A3E);border:2px solid #B9741F;box-shadow:0 4px 0 #B9741F;display:grid;place-items:center;font:800 .8rem var(--font-head);color:#6B3F0B;animation:coin .75s cubic-bezier(.3,.9,.4,1) both}
+.coin:nth-child(1){bottom:0;animation-delay:.05s}.coin:nth-child(2){bottom:15px;animation-delay:.3s}.coin:nth-child(3){bottom:30px;animation-delay:.55s}.coin:nth-child(4){bottom:45px;animation-delay:.8s}.coin:nth-child(5){bottom:60px;animation-delay:1.05s}
+@keyframes coin{0%{transform:translateY(-240px);opacity:0}12%{opacity:1}68%{transform:translateY(0)}82%{transform:translateY(-9px)}100%{transform:translateY(0)}}
+.codecard{display:block;width:100%;background:var(--surface);border:2px solid var(--primary);border-radius:18px;padding:18px;text-align:center;view-transition-name:mf-card}
+.codecard .code{font:700 1.55rem/1.2 var(--font-mono);color:var(--primary-ink);letter-spacing:.04em;word-break:break-all}
+
+/* toast */
+#toasts{position:fixed;left:0;right:0;top:calc(8px + env(safe-area-inset-top,0px));z-index:90;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;padding-inline:max(12px,env(safe-area-inset-left,0px))}
+.toast{pointer-events:auto;width:100%;max-width:440px;background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--primary);border-radius:14px;padding:12px 14px;box-shadow:var(--shadow);animation:tin .3s ease both;font-size:.95rem}
+.toast .app{font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:6px;margin-bottom:2px}
+@keyframes tin{from{transform:translateY(-16px);opacity:0}to{transform:none;opacity:1}}
+
+/* skeleton */
+.sk{border-radius:10px;background:linear-gradient(90deg,var(--surface2) 25%,var(--line) 50%,var(--surface2) 75%);background-size:200% 100%;animation:skm 1.3s linear infinite}
+@keyframes skm{to{background-position:-200% 0}}
+
+/* manifest document */
+.mdoc{position:relative;background:var(--paper);color:var(--paper-ink);border-radius:6px;box-shadow:var(--shadow);overflow:hidden;view-transition-name:mf-card;border:1px solid var(--paper-line)}
+.mdoc::before{content:'';position:absolute;inset:8px;border:1.5px solid var(--primary);border-radius:3px;pointer-events:none;z-index:3;opacity:.75}
+.mdoc .wm{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;z-index:0;overflow:hidden}
+.mdoc .wm span{font:800 5.4rem var(--font-head);letter-spacing:.12em;color:var(--primary);opacity:.06;transform:rotate(-28deg);white-space:nowrap}
+.mdoc .hd{position:relative;z-index:1;background:var(--primary);color:#fff;padding:26px 24px 18px;display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.mdoc .hd b{font:800 1.25rem var(--font-head);display:block}
+.mdoc .hd small{opacity:.85;letter-spacing:.14em;font-size:.68rem;font-weight:600;text-transform:uppercase}
+.mdoc .body{position:relative;z-index:1;padding:20px 24px 26px}
+.mdoc .idrow{display:flex;gap:16px;align-items:center;justify-content:space-between;border-bottom:1.5px dashed var(--paper-line);padding-bottom:16px;margin-bottom:14px}
+.mdoc .mid{font:700 1.5rem/1.15 var(--font-mono);letter-spacing:.02em;word-break:break-all;color:var(--primary)}
+.mdoc .qr{background:#fff;padding:6px;border:1px solid var(--paper-line);border-radius:6px;flex:none;line-height:0}
+.mdoc .qr svg{width:96px;height:96px;fill:#14201F}
+.mdoc dl{margin:0;display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.4fr);gap:8px 14px}
+.mdoc dt{color:var(--paper-muted);font-size:.8rem}
+.mdoc dd{margin:0;font-weight:600;font-size:.92rem;text-align:right;overflow-wrap:anywhere}
+.mdoc .wt{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;background:rgba(13,92,99,.07);border-radius:8px;padding:12px;margin:14px 0}
+.mdoc .wt b{font:800 1.5rem var(--font-head);display:block;font-variant-numeric:tabular-nums}
+.mdoc .wt small{color:var(--paper-muted);font-size:.74rem}
+.mdoc .wt .mid2{text-align:center;font-size:.78rem;font-weight:700}
+.mdoc .map{border:1px solid var(--paper-line);border-radius:8px;overflow:hidden;margin:14px 0;background:#E7F0F0;line-height:0}
+.mdoc .stamp{display:flex;align-items:center;gap:10px;justify-content:center;border:2px solid;border-radius:10px;padding:10px;font:800 1.05rem var(--font-head);letter-spacing:.02em;transform:rotate(-1.2deg)}
+.mdoc .stamp.ok{border-color:#17653D;color:#17653D;background:#E4F4EA}
+.mdoc .stamp.warn{border-color:#8A4B00;color:#8A4B00;background:#FBEBD6}
+.mdoc .stamp.bad{border-color:#B3261E;color:#B3261E;background:#FBE5E2}
+.mdoc .foot{font-size:.72rem;color:var(--paper-muted);margin-top:12px;text-align:center}
+.mdoc .photo{width:100%;max-height:220px;object-fit:cover;border-radius:8px;border:1px solid var(--paper-line);margin-top:12px}
+
+/* shop */
+.gbadge{position:relative;width:88px;height:96px;flex:none;display:grid;place-items:center;clip-path:polygon(50% 0,100% 16%,100% 62%,50% 100%,0 62%,0 16%);background:var(--surface2);color:var(--muted);overflow:hidden}
+.gbadge svg{width:40px;height:40px;position:relative;z-index:1}
+.gbadge.on{background:linear-gradient(135deg,#F8DA94,#E0A12F 55%,#B97A14);color:#2E1B00}
+.gbadge::after{content:'';position:absolute;inset:0;background:linear-gradient(110deg,transparent 38%,rgba(255,255,255,.85) 50%,transparent 62%);transform:translateX(-130%);z-index:2}
+.gbadge.unlock{background:linear-gradient(135deg,#F8DA94,#E0A12F 55%,#B97A14);color:#2E1B00;animation:togold 1.6s ease both}
+.gbadge.unlock::after{animation:sheen 1.4s .25s ease both}
+@keyframes sheen{to{transform:translateX(130%)}}
+@keyframes togold{0%{filter:grayscale(1) brightness(1.15)}60%{filter:grayscale(.6) brightness(1.1)}100%{filter:none}}
+.vlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.vlist li{display:flex;gap:12px;align-items:flex-start}
+.vlist .dot{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;flex:none;border:2px solid var(--line);color:var(--muted)}
+.vlist .dot svg{width:15px;height:15px;stroke-width:3}
+.vlist li.done .dot{background:var(--ok-soft);border-color:var(--ok);color:var(--ok)}
+.rates{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.rates div{background:var(--surface2);border-radius:10px;padding:8px;text-align:center;font-size:.8rem}
+.rates b{display:block;font-size:.95rem;font-variant-numeric:tabular-nums}
+.filters{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.filters .full{grid-column:1/-1}
+
+/* compliance */
+.pnav{background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:15}
+.pnav .col{display:flex;align-items:center;gap:4px}
+.pnav .tabs{display:flex;gap:2px;overflow-x:auto;flex:1}
+.pnav .tabs button{min-height:52px;padding:0 16px;border:0;border-bottom:3px solid transparent;background:none;font-weight:700;color:var(--muted);white-space:nowrap}
+.pnav .tabs button[aria-current="page"]{color:var(--primary-ink);border-color:var(--primary-ink)}
+.pnav .who{font-size:.85rem;color:var(--muted);text-align:right}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.kpi .v{font:800 2.1rem/1.1 var(--font-head);font-variant-numeric:tabular-nums;margin-top:4px}
+.kpi .s{color:var(--muted);font-size:.85rem;margin-top:4px}
+.dialbox{display:flex;align-items:center;gap:14px}
+.dial{width:118px;height:118px;flex:none}
+.dial .trk{stroke:var(--line);fill:none;stroke-width:12}
+.dial .arc{stroke:var(--amber-strong);fill:none;stroke-width:12;stroke-linecap:round;transform:rotate(-90deg);transform-origin:60px 60px}
+.dial.ok .arc{stroke:var(--ok-strong)}
+.dial text{font:800 26px var(--font-head);fill:var(--text)}
+.dial.pulse{animation:pulse .7s ease-out}
+@keyframes pulse{0%{transform:scale(1)}40%{transform:scale(1.07)}100%{transform:scale(1)}}
+.maprow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+.mapbox{border-radius:12px;overflow:hidden;border:1px solid var(--line);line-height:0;background:var(--land)}
+.mapbox svg{width:100%;height:auto;max-height:560px}
+.zrow{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.4fr) auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);font-size:.9rem}
+.zrow:last-child{border:0}
+.tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+table.tbl{border-collapse:collapse;width:100%;min-width:860px;font-size:.88rem}
+.tbl th{position:sticky;top:0;background:var(--surface2);text-align:left;font-size:.74rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);padding:0;white-space:nowrap}
+.tbl th button{width:100%;min-height:44px;padding:0 12px;border:0;background:none;font:inherit;text-transform:inherit;letter-spacing:inherit;color:inherit;font-weight:700;display:flex;align-items:center;gap:4px;text-align:left}
+.tbl td{padding:10px 12px;border-top:1px solid var(--line);vertical-align:middle}
+.tbl tr.r{cursor:pointer}
+.tbl tr.r:hover td{background:var(--surface2)}
+.tbl td.n{text-align:right;font-variant-numeric:tabular-nums}
+.tbl .xp{width:44px;padding:0 0 0 6px}
+.tbl .xp button{width:44px;height:44px;border:0;background:none;display:grid;place-items:center;color:var(--muted)}
+.tbl tr.open .xp svg{transform:rotate(180deg)}
+.tbl tr.detail td{background:var(--surface2);padding:16px}
+.dgrid{display:grid;grid-template-columns:140px minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+.dgrid img{width:140px;height:110px;object-fit:cover;border-radius:10px;background:var(--line)}
+.dgrid dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:.85rem}
+.dgrid dt{color:var(--muted)}
+.dgrid dd{margin:0;font-weight:600}
+.pbar{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);padding:0 0 env(safe-area-inset-bottom,0px);display:none}
+.pbar .col{display:flex}
+.pbar button{flex:1;min-height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:0;background:none;color:var(--muted);font-weight:700;font-size:.72rem}
+.pbar button svg{width:22px;height:22px}
+.pbar button[aria-current="page"]{color:var(--primary-ink)}
+.empty{text-align:center;padding:28px 16px}
+.empty h3{margin:10px 0 6px}
+.cta-banner{display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:var(--primary);color:var(--on-primary);border-radius:18px;padding:20px 22px}
+.cta-banner h2{font-size:1.25rem}
+.bars{display:flex;align-items:flex-end;gap:8px;height:120px}
+.bars div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px;height:100%;font-size:.7rem;color:var(--muted)}
+.bars i{display:block;width:100%;background:var(--primary);border-radius:6px 6px 0 0;min-height:3px}
+.bars b{font-size:.7rem;color:var(--text);font-variant-numeric:tabular-nums}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+.toolbar{display:grid;grid-template-columns:minmax(200px,2fr) repeat(3,minmax(130px,1fr));gap:10px;margin-bottom:12px}
+.toolbar input,.toolbar select{min-height:48px}
+
+@media (max-width:900px){
+  .pnav .tabs{display:none}.pbar{display:block}.pnav .who{display:none}
+  .maprow{grid-template-columns:1fr}
+  .toolbar{grid-template-columns:1fr 1fr}.toolbar .full{grid-column:1/-1}
+  .dgrid{grid-template-columns:1fr}.dgrid img{width:100%;height:160px}
+  .page.pc{padding-bottom:100px}
+}
+@media (max-width:420px){
+  .stats{grid-template-columns:1fr}
+  .lang button{min-width:44px}
+  .mdoc .idrow{flex-direction:column;align-items:flex-start}
+  .mdoc .wm span{font-size:3.6rem}
+}
+::view-transition-group(mf-card){animation-duration:.4s}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}.sk{animation:none}}
+</style>
+
+</head>
+<body>
+<div id="app"></div>
+<div id="toasts" role="status" aria-live="polite"></div>
+
+<script>
+'use strict';
+/* ================= helpers ================= */
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const DAY=864e5, pad=n=>String(n).padStart(2,'0');
+const fmtD=ts=>new Date(ts).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+const fmtDT=ts=>new Date(ts).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:false});
+const inr=n=>'₹'+Math.round(n).toLocaleString('en-IN');
+const nf=n=>(Math.round(n*10)/10).toLocaleString('en-IN',{maximumFractionDigits:1});
+const ymd=ts=>{const d=new Date(ts);return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())};
+const sod=ts=>{const d=new Date(ts);d.setHours(0,0,0,0);return d.getTime()};
+const parseYmd=(s,end)=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d,end?23:0,end?59:0,end?59:0).getTime()};
+const sum=(a,f)=>a.reduce((x,y)=>x+(f?f(y):y),0);
+const rid4=()=>Math.random().toString(36).slice(2,6);
+
+/* ================= i18n ================= */
+const LANGS=[['en','EN'],['hi','हिं'],['mr','मरा']];
+const T={
+ continue:['Continue','आगे बढ़ें','पुढे जा'],back:['Back','वापस','मागे'],next:['Next','आगे','पुढे'],done:['Done','हो गया','झाले'],cancel:['Cancel','रद्द करें','रद्द करा'],
+ save:['Save','सहेजें','जतन करा'],confirm:['Confirm','पक्का करें','निश्चित करा'],language:['Language','भाषा','भाषा'],
+ call:['Call Support','सहायता को कॉल करें','मदतीला कॉल करा'],
+ offline:['Offline. Your data will sync when connected.','ऑफ़लाइन। नेटवर्क आते ही आपका डेटा सिंक हो जाएगा।','ऑफलाइन. नेटवर्क मिळताच तुमचा डेटा सिंक होईल.'],
+ home:['Home','होम','होम'],coll:['My Collections','मेरा कलेक्शन','माझे संकलन'],earn:['Earnings','कमाई','कमाई'],hist:['Waste History','कचरा इतिहास','कचरा इतिहास'],badge:['Green Shop','ग्रीन शॉप','ग्रीन शॉप'],
+ 'role.q':['What best describes you?','आप क्या करते हैं?','तुम्ही काय करता?'],
+ 'role.k':['Kabadiwala','कबाड़ीवाला','भंगारवाला'],'role.k.d':['I collect and sell scrap.','मैं कबाड़ इकट्ठा करके बेचता हूँ।','मी भंगार गोळा करून विकतो.'],
+ 'role.s':['Repair Shop','रिपेयर शॉप','रिपेअर शॉप'],'role.s.d':['I repair electronics and have leftover parts.','मैं इलेक्ट्रॉनिक्स रिपेयर करता हूँ और मेरे पास बचे पुर्ज़े हैं।','मी इलेक्ट्रॉनिक्स दुरुस्त करतो आणि माझ्याकडे उरलेले भाग आहेत.'],
+ 'role.c':['Compliance Officer','कंप्लायंस अधिकारी','अनुपालन अधिकारी'],'role.c.d':['I manage recycling targets for my company.','मैं अपनी कंपनी के रीसाइक्लिंग लक्ष्य संभालता हूँ।','मी माझ्या कंपनीची रीसायकलिंग उद्दिष्टे सांभाळतो.'],
+ resume:['Open','खोलें','उघडा'],
+ phone:['Mobile number','मोबाइल नंबर','मोबाइल नंबर'],sendotp:['Send OTP','OTP भेजें','OTP पाठवा'],otp:['Enter the 6-digit OTP','6 अंकों का OTP डालें','6 अंकी OTP टाका'],verify:['Verify','जाँचें','तपासा'],
+ selfie:['Take a photo of your face','अपने चेहरे की फ़ोटो लें','तुमच्या चेहऱ्याचा फोटो काढा'],area:['Where do you collect?','आप कहाँ से कबाड़ लेते हैं?','तुम्ही कुठे भंगार गोळा करता?'],
+ name_opt:['Your name (optional)','आपका नाम (वैकल्पिक)','तुमचे नाव (ऐच्छिक)'],finish:['Start','शुरू करें','सुरू करा'],
+ hello:['Namaste','नमस्ते','नमस्कार'],
+ logcta:["Log Today's Collection",'आज का कलेक्शन दर्ज करें','आजचे संकलन नोंदवा'],logsub:['Photo, category, weight','फ़ोटो, किस्म, वज़न','फोटो, प्रकार, वजन'],
+ today:["Today's earnings",'आज की कमाई','आजची कमाई'],week:['Handovers this week','इस हफ़्ते के हैंडओवर','या आठवड्यातील हस्तांतरण'],
+ extra:['You earned extra today','आज आपने ज़्यादा कमाया','आज तुम्ही जास्त कमावले'],middle:['Middleman would pay','बिचौलिया देता','मध्यस्थ देईल'],youget:['You get','आपको मिला','तुम्हाला मिळाले'],
+ step1:['Photograph the waste','कबाड़ की फ़ोटो लें','भंगाराचा फोटो काढा'],step2:['What did you collect?','क्या इकट्ठा किया?','काय गोळा केले?'],step3:['How much does it weigh?','वज़न कितना है?','वजन किती आहे?'],
+ tapcam:['Tap to open camera','कैमरा खोलने के लिए दबाएँ','कॅमेरा उघडण्यासाठी दाबा'],samplephoto:['No camera? Use a sample photo','कैमरा नहीं है? सैंपल फ़ोटो लें','कॅमेरा नाही? नमुना फोटो वापरा'],
+ expect:['You will earn about','आपको लगभग मिलेंगे','तुम्हाला सुमारे मिळतील'],
+ saved:['Collection saved','कलेक्शन दर्ज हो गया','संकलन नोंदवले'],savedoff:['Saved on this phone','इस फ़ोन में सहेजा गया','या फोनमध्ये जतन केले'],
+ code:['Handover code','हैंडओवर कोड','हस्तांतरण कोड'],sendcode:['Send this code to the recycler','यह कोड रीसाइकलर को भेजें','हा कोड रीसायकलरला पाठवा'],
+ wa:['Share on WhatsApp','WhatsApp पर भेजें','WhatsApp वर पाठवा'],viewm:['Open manifest','मैनिफ़ेस्ट खोलें','मॅनिफेस्ट उघडा'],
+ waiting:['waiting for recycler','रीसाइकलर की पुष्टि बाकी','रीसायकलरची पुष्टी बाकी'],confirmed:['confirmed','पक्का हुआ','निश्चित'],
+ none_coll:['No collections yet','अभी कोई कलेक्शन नहीं','अजून संकलन नाही'],none_sub:['Tap the big button on Home to log your first one.','पहला दर्ज करने के लिए होम पर बड़ा बटन दबाएँ।','पहिले नोंदवण्यासाठी होमवरील मोठे बटण दाबा.'],
+ sample_load:['Load sample history','सैंपल इतिहास जोड़ें','नमुना इतिहास जोडा'],
+ aadhaar:['Link Aadhaar to unlock bank transfer payments','बैंक ट्रांसफ़र पाने के लिए आधार जोड़ें','बँक ट्रान्सफरसाठी आधार जोडा'],
+ aadhaar_btn:['Link Aadhaar (optional)','आधार जोड़ें (वैकल्पिक)','आधार जोडा (ऐच्छिक)'],
+ s_verifying:['Your Green Shop badge is being verified','आपका ग्रीन शॉप बैज जाँचा जा रहा है','तुमचा ग्रीन शॉप बॅज तपासला जात आहे'],
+ s_prog:['{n} of 5 verifications complete','5 में से {n} जाँच पूरी','5 पैकी {n} तपासण्या पूर्ण'],s_active:['Green Shop badge active','ग्रीन शॉप बैज चालू है','ग्रीन शॉप बॅज सक्रिय'],
+ month:['This month','इस महीने','या महिन्यात'],kglogged:['kg logged','किलो दर्ज','किलो नोंद'],earned:['Amount earned','कमाई की रकम','मिळालेली रक्कम'],rates:['Current rate per kg','प्रति किलो मौजूदा दर','प्रति किलो सध्याचा दर'],
+ sched:['Schedule Pickup','पिकअप तय करें','पिकअप ठरवा'],sched_sub:['Choose waste, weight and date','कचरा, वज़न और तारीख़ चुनें','कचरा, वजन आणि तारीख निवडा'],
+ category:['Waste category','कचरे की किस्म','कचऱ्याचा प्रकार'],estkg:['Estimated weight','अनुमानित वज़न','अंदाजे वजन'],pdate:['Preferred pickup date','पसंदीदा पिकअप तारीख़','पसंतीची पिकअप तारीख'],notes:['Notes','टिप्पणी','टीप'],
+ submit:['Confirm pickup','पिकअप पक्का करें','पिकअप निश्चित करा'],
+ export:['Export PDF','PDF निकालें','PDF काढा'],
+ 'status.verified':['Verified','सत्यापित','सत्यापित'],'status.pending':['Pending','बाकी','प्रलंबित'],'status.flagged':['Flagged','जाँच में','तपासणीत'],
+ ov:['Overview','ओवरव्यू','आढावा'],mf:['Manifests','मैनिफ़ेस्ट','मॅनिफेस्ट'],rc:['Recyclers','रीसाइकलर','रीसायकलर'],rp:['Reports','रिपोर्ट','अहवाल'],st:['Settings','सेटिंग्स','सेटिंग्ज'],
+ genreport:['Generate Compliance Report','कंप्लायंस रिपोर्ट बनाएँ','अनुपालन अहवाल तयार करा'],
+ connect:['Connect your recycler network','अपना रीसाइकलर नेटवर्क जोड़ें','तुमचे रीसायकलर नेटवर्क जोडा']
+};
+function t(k,p){const a=T[k];let s=a?(a[LANGS.findIndex(l=>l[0]===S.lang)]||a[0]):k;if(p)for(const x in p)s=s.replace('{'+x+'}',p[x]);return s}
+
+/* ================= icons ================= */
+const IC={
+ camera:'<path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/>',
+ call:'<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/>',
+ home:'<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>',
+ list:'<path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.5" cy="6" r="1"/><circle cx="3.5" cy="12" r="1"/><circle cx="3.5" cy="18" r="1"/>',
+ rupee:'<path d="M7 5h11M7 10h11M7 5c6 0 8 2 8 5s-3 5-8 5l7 5"/>',
+ check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',x:'<path d="M6 6l12 12M18 6L6 18"/>',clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+ share:'<circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.2 10.8l7.6-3.6M8.2 13.2l7.6 3.6"/>',
+ link:'<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+ pdf:'<path d="M6 3h8l5 5v13H6z"/><path d="M14 3v5h5"/><path d="M12 11v6M9.5 14.5L12 17l2.5-2.5"/>',
+ shield:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5L15.5 10"/>',
+ pin:'<path d="M12 21s7-6.2 7-11a7 7 0 0 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/>',
+ truck:'<path d="M2 6h11v10H2zM13 9h4l3 3v4h-7z"/><circle cx="6.5" cy="17.5" r="1.8"/><circle cx="16.5" cy="17.5" r="1.8"/>',
+ award:'<circle cx="12" cy="9" r="6"/><path d="M8.5 14L7 21l5-3 5 3-1.5-7"/><path d="M9.5 9l1.8 1.8L14.5 7.5"/>',
+ back:'<path d="M15 5l-7 7 7 7"/>',plus:'<path d="M12 5v14M5 12h14"/>',minus:'<path d="M5 12h14"/>',chev:'<path d="M6 9l6 6 6-6"/>',
+ wifioff:'<path d="M3 3l18 18M8.5 16.5a5 5 0 0 1 7 0M5 12.5a10 10 0 0 1 4-2.3M19 12.5a10 10 0 0 0-5.5-3M2 8.8a15 15 0 0 1 5-2.9M22 8.8a15 15 0 0 0-8.5-3.7"/>',
+ user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/>',
+ settings:'<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>',
+ chart:'<path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/>',
+ search:'<circle cx="11" cy="11" r="6.5"/><path d="M16 16l5 5"/>',cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+ upload:'<path d="M12 16V4M7 9l5-5 5 5M4 20h16"/>',building:'<path d="M4 21V5l8-2v18M12 8h8v13M4 21h17M7 9h2M7 13h2M7 17h2M15 12h2M15 16h2"/>',
+ copy:'<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>',
+ wa:'<path d="M3 21l1.6-4.8A9 9 0 1 1 8 19.5z"/><path d="M9 8.5c0 3.5 3 6.5 6.5 6.5l1.3-1.6-2-1-1 .8a4 4 0 0 1-2-2l.8-1-1-2z"/>',
+ alert:'<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18.5v.5"/>',
+ doc:'<path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h7M9 8h3"/>',
+ globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/>',
+ mark:'<path d="M5 19L12 5l7 14"/><path d="M8.2 14h7.6"/>',
+ refresh:'<path d="M20 11a8 8 0 0 0-14-4M4 5v4h4M4 13a8 8 0 0 0 14 4M20 19v-4h-4"/>'
+};
+const ic=(n,cls='')=>`<svg class="i ${cls}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${IC[n]||''}</svg>`;
+const CIC={
+ phone:'<rect x="14" y="4" width="20" height="40" rx="4"/><path d="M21 38h6M20 9h8"/>',
+ laptop:'<rect x="9" y="10" width="30" height="21" rx="2"/><path d="M4 36h40l-3 5H7z"/>',
+ wire:'<path d="M9 40c-5-9 5-11 9-15s0-12 8-12 6 7 11 7"/><rect x="34" y="14" width="9" height="12" rx="2" transform="rotate(20 38 20)"/><path d="M6 40l5-3"/>',
+ battery:'<rect x="8" y="15" width="29" height="19" rx="3"/><path d="M37 21h3v7h-3M21 19l-4 6h6l-4 6"/>',
+ board:'<rect x="8" y="8" width="32" height="32" rx="3"/><rect x="18" y="18" width="12" height="12" rx="1"/><path d="M13 14h6v-3M35 14h-5v-3M13 34h6M35 34h-5M24 18v-5M24 30v5"/>',
+ mixed:'<path d="M24 6l16 8v20l-16 8-16-8V14z"/><path d="M8 14l16 8 16-8M24 22v20"/>'
+};
+const cic=id=>`<svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">${CIC[id]||''}</svg>`;
+
+/* ================= domain data ================= */
+const CATS=[
+ {id:'phone',en:'Phones',hi:'फ़ोन',mr:'फोन',rate:40},
+ {id:'laptop',en:'Laptops',hi:'लैपटॉप',mr:'लॅपटॉप',rate:32},
+ {id:'wire',en:'Wires',hi:'तार',mr:'तार',rate:22},
+ {id:'battery',en:'Batteries',hi:'बैटरी',mr:'बॅटरी',rate:28},
+ {id:'board',en:'Boards',hi:'बोर्ड',mr:'बोर्ड',rate:85},
+ {id:'mixed',en:'Mixed',hi:'मिक्स',mr:'मिक्स',rate:18}];
+const CAT=Object.fromEntries(CATS.map(c=>[c.id,c]));
+const catWord=c=>S.lang==='mr'?CAT[c].mr:CAT[c].hi;
+const MIDDLE=.62; // what a middleman typically pays, as a share of the EPR rate (sample assumption)
+const ZONES={Dharavi:[19.0430,72.8530],Kurla:[19.0726,72.8795],Andheri:[19.1197,72.8468],'Grant Road':[18.9646,72.8140],'Navi Mumbai':[19.0330,73.0297],Thane:[19.2183,72.9781],Vasai:[19.3919,72.8397]};
+const REC={
+ r1:{id:'r1',name:'Eco-Recycling Ltd (Ecoreco)',lic:'MPCB/RO(HQ)/E-Waste/2024-R0072',base:'Vasai East (7,200 MT)',vehicle:'Tempo (Tata Ace)'},
+ r2:{id:'r2',name:'Evergreen Recyclekaro India',lic:'MPCB/RO(HQ)/E-Waste/2023-R0147',base:'Wada, Palghar (R2 & ISO)',vehicle:'Tempo (Tata Ace)'},
+ r3:{id:'r3',name:'Justdispose Recycling Pvt Ltd',lic:'MPCB/RO(HQ)/E-Waste/2024-R0120',base:'Vasai East (1,200 MT)',vehicle:'Pickup van (Mahindra Bolero)'},
+ r4:{id:'r4',name:'E-Incarnation Recycling',lic:'MPCB/RO(HQ)/E-Waste/2024-R0095',base:'Tarapur, Palghar (950 MT)',vehicle:'Heavy Tempo'}};
+const ZREC={Dharavi:'r1',Kurla:'r3',Andheri:'r2','Grant Road':'r2','Navi Mumbai':'r2',Thane:'r2',Vasai:'r1'};
+const FREE_MAIL=/@(gmail|yahoo|ymail|outlook|hotmail|live|rediffmail|proton|protonmail|icloud|aol)\./i;
+const SUPPORT_NO='1800 000 0000';
+
+/* quarter in the Indian financial year (Apr–Mar) */
+function quarterOf(ts){const d=new Date(ts),m=d.getMonth(),y=d.getFullYear();const fy=m>=3?y:y-1;const q=m>=3&&m<=5?1:m>=6&&m<=8?2:m>=9&&m<=11?3:4;
+ const sm=[3,6,9,0][q-1],sy=q===4?fy+1:fy;const start=new Date(sy,sm,1).getTime();const end=new Date(sy,sm+3,1).getTime()-1;
+ return{q,fy,start,end,label:`Q${q} FY${String(fy).slice(2)}-${String(fy+1).slice(2)}`}}
+
+/* ================= state ================= */
+const LS='akrit.v1';
+const S={view:'select',role:null,profiles:{},lang:'en',offline:false,loading:true,local:{m:{},p:{}},remote:{m:{},p:{}},queue:[],notified:{},reports:[],
+ tab:{kabadi:'home',shop:'home',compliance:'overview'},ob:null,ui:{},db:null,dbState:'connecting',rev:0,pub:null};
+function persist(){try{localStorage.setItem(LS,JSON.stringify({profiles:S.profiles,role:S.role,lang:S.lang,local:S.local,queue:S.queue,notified:S.notified,reports:S.reports}))}catch(e){}}
+function restore(){try{const j=JSON.parse(localStorage.getItem(LS)||'null');if(j){S.profiles=j.profiles||{};S.role=j.role||null;S.lang=j.lang||'en';S.local=j.local||{m:{},p:{}};S.local.m=S.local.m||{};S.local.p=S.local.p||{};S.queue=j.queue||[];S.notified=j.notified||{};S.reports=j.reports||[]}}catch(e){}}
+const prof=()=>S.role?S.profiles[S.role]:null;
+const isOffline=()=>S.offline||(typeof navigator!=='undefined'&&navigator.onLine===false);
+const bump=()=>{S.rev++};
+
+/* ================= sample data (never written to the shared store) ================= */
+function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function buildSample(){
+ const R=mulberry(11),now=Date.now(),q=quarterOf(now),span=Math.max(3,Math.min(37,Math.floor((now-q.start)/DAY)));
+ const kz=['Dharavi','Dharavi','Dharavi','Kurla','Kurla','Andheri','Vasai','Vasai','Navi Mumbai','Navi Mumbai','Thane','Dharavi','Kurla'];
+ const named=['Imran Shaikh','Dattu Pawar','Sunita Kamble'];
+ const gens=kz.map((z,i)=>({id:'sk'+i,role:'kabadi',zone:z,name:i<3?named[i]:'Collector',named:i<3,code:'G-'+(4100+i*37)}));
+ const shops=[['Lamington Mobile Care','Grant Road'],['Shree Ganesh Repairs','Andheri'],['Kurla Circuit House','Kurla'],['Andheri Phone Clinic','Andheri'],['Navi Tech Services','Navi Mumbai'],['Thane Laptop Works','Thane'],['Vasai Digital Fix','Vasai'],['Grant Road Electronics','Grant Road'],['Sai Gadget Repair','Dharavi']];
+ shops.forEach((s,i)=>gens.push({id:'ss'+i,role:'shop',zone:s[1],name:s[0],named:i%3!==2,code:'G-'+(5200+i*41)}));
+ const wk={kabadi:['phone','wire','mixed','battery','phone','laptop','board'],shop:['board','phone','laptop','board','battery','mixed']};
+ const rng={phone:[6,30],laptop:[10,40],wire:[8,45],battery:[5,25],board:[3,14],mixed:[12,50]};
+ const out=[];let base=0;
+ for(let i=0;i<46;i++){
+  const g=gens[Math.floor(R()*gens.length)],cs=wk[g.role],cat=cs[Math.floor(R()*cs.length)],[lo,hi]=rng[cat];
+  const wl=Math.round((lo+R()*(hi-lo))*10)/10,da=Math.floor(R()*span),h=8+Math.floor(R()*10),m=Math.floor(R()*60);
+  const pickupAt=sod(now-da*DAY)+h*36e5+m*6e4;if(pickupAt>now)continue;
+  let status='verified';const r=R();if(da<=1&&r<.6)status='pending';else if(r>.93)status='flagged';
+  const rid=ZREC[g.zone],z=ZONES[g.zone];
+  let wv=null,deliveredAt=null,paid=null,note='';
+  if(status!=='pending'){const f=status==='flagged'?.74+R()*.1:.94+R()*.07;wv=Math.round(wl*f*10)/10;deliveredAt=pickupAt+(90+Math.floor(R()*240))*6e4;if(status==='verified')base+=wv;else note='Weight differs by more than 10%'}
+  out.push({id:`AKR-${String(q.start?new Date(pickupAt).getFullYear()%100:0)}${pad(new Date(pickupAt).getMonth()+1)}-MH-${String(10000+Math.floor(R()*89999))}`,gid:g.id,gname:g.name,gcode:g.code,role:g.role,named:g.named,zone:g.zone,cat,wl,wv,paid,rid,pickupAt,deliveredAt,status,
+   lat:+(z[0]+(R()-.5)*.02).toFixed(5),lng:+(z[1]+(R()-.5)*.02).toFixed(5),photo:null,photoSample:false,note,u:pickupAt,demo:true});
+ }
+ const f=(1200*.68)/Math.max(base,1);
+ out.forEach(m=>{m.wl=Math.round(m.wl*f*10)/10;if(m.wv!=null){m.wv=Math.round(m.wv*f*10)/10;m.paid=m.status==='verified'?Math.round(m.wv*CAT[m.cat].rate):null}});
+ return out;
+}
+let SAMPLE=[];
+
+/* ================= store ================= */
+let _all=null,_allRev=-1;
+const sampleOn=()=>S.profiles.compliance?S.profiles.compliance.includeSample!==false:true;
+function getAll(){
+ if(_all&&_allRev===S.rev)return _all;
+ const map=new Map();if(sampleOn())SAMPLE.forEach(m=>map.set(m.id,m));
+ for(const src of [S.remote.m,S.local.m])for(const id in src){const r=src[id];const c=map.get(id);if(!c||(r.u||0)>=(c.u||0))map.set(id,r)}
+ _all=[...map.values()];_allRev=S.rev;return _all}
+const getM=id=>getAll().find(m=>m.id===id)||(sampleOn()?null:SAMPLE.find(m=>m.id===id));
+function allPickups(){const map={};for(const src of [S.remote.p,S.local.p])for(const id in src)map[id]=src[id];return Object.values(map)}
+const mine=()=>{const p=prof();return p?getAll().filter(m=>m.gid===p.id):[]};
+const amountExp=m=>m.wl*CAT[m.cat].rate;
+const amountOf=m=>m.status==='verified'?(m.paid??m.wv*CAT[m.cat].rate):null;
+
+function mkId(){const d=new Date();return`AKR-${String(d.getFullYear()%100)}${pad(d.getMonth()+1)}-MH-${String(10000+Math.floor(Math.random()*89999))}`}
+function putM(m){m.u=Date.now();S.local.m[m.id]=m;if(!S.queue.some(q=>q.k==='m'&&q.id===m.id))S.queue.push({k:'m',id:m.id});bump();persist();trySync()}
+function putP(p){p.u=Date.now();S.local.p[p.id]=p;if(!S.queue.some(q=>q.k==='p'&&q.id===p.id))S.queue.push({k:'p',id:p.id});bump();persist();trySync()}
+function newManifest({cat,wl,photo,photoSample,when,zoneOverride}){
+ const p=prof(),z=zoneOverride||p.zone||'Dharavi',rid=ZREC[z],c=ZONES[z];
+ const m={id:mkId(),gid:p.id,gname:p.role==='shop'?p.shopName:(p.name||'Kabadiwala ••'+p.phone.slice(-4)),gcode:'G-'+p.id.slice(-4).toUpperCase(),role:p.role,named:p.role==='shop'?p.named!==false:!!p.named,zone:z,cat,wl:+wl,wv:null,paid:null,rid,
+  pickupAt:when||Date.now(),deliveredAt:null,status:'pending',lat:+(c[0]+(Math.random()-.5)*.008).toFixed(5),lng:+(c[1]+(Math.random()-.5)*.008).toFixed(5),photo:photo||null,photoSample:!!photoSample,note:'',u:Date.now()};
+ putM(m);return m}
+function verifyM(m,wv,flagNote){
+ const n={...m,wv:+wv,deliveredAt:Date.now()};const delta=Math.abs(wv-m.wl)/m.wl;
+ if(flagNote){n.status='flagged';n.note=flagNote;n.paid=null}
+ else if(delta>.10){n.status='flagged';n.note='Weight differs by '+Math.round(delta*100)+'%';n.paid=null}
+ else{n.status='verified';n.paid=Math.round(wv*CAT[m.cat].rate);n.note=''}
+ putM(n);return n}
+
+/* ================= sync (shared store) ================= */
+let syncing=false;
+async function trySync(){
+ if(syncing||isOffline()||!S.db||!S.queue.length)return;
+ syncing=true;let n=0;
+ try{for(const q of [...S.queue]){
+   const rec=(q.k==='m'?S.local.m:S.local.p)[q.id];
+   if(rec)await S.db.doc((q.k==='m'?'manifests/':'pickups/')+q.id).set(rec);
+   S.queue=S.queue.filter(x=>!(x.k===q.k&&x.id===q.id));n++}
+  S.dbState='live';persist();
+  if(S.ui.wasOffline&&n){S.ui.wasOffline=false;const p=prof();if(p&&p.role==='kabadi')push(S.lang==='en'?`Back online. ${n} handover${n>1?'s are':' is'} now registered.`:'नेटवर्क वापस आ गया। आपके हैंडओवर दर्ज हो गए।')}
+ }catch(e){S.dbState=(e&&e.code==='invalid_argument')?'readonly':'error'}
+ finally{syncing=false;softRender()}
+}
+async function initDb(){
+ setTimeout(()=>{if(S.loading){S.loading=false;softRender()}},1400);
+ try{
+  const cl=window.claude;if(!cl||!cl.use){S.dbState='local';return}
+  const db=await cl.use('db');if(!db){S.dbState='local';softRender();return}
+  S.db=db;S.dbState='live';
+  const got=()=>{S.loading=false;bump();checkNotifs();softRender();trySync()};
+  const bad=e=>{S.dbState='error';S.loading=false;softRender()};
+  db.collection('manifests').onSnapshot(sn=>{const o={};sn.docs.forEach(d=>{o[d.id]=d.data()});S.remote.m=o;got()},bad);
+  db.collection('pickups').onSnapshot(sn=>{const o={};sn.docs.forEach(d=>{o[d.id]=d.data()});S.remote.p=o;got()},bad);
+ }catch(e){S.dbState='local'}
+}
+const _caps={};
+function cap(name){return _caps[name]||(_caps[name]=(async()=>{try{return window.claude&&window.claude.use?await window.claude.use(name):null}catch(e){return null}})())}
+async function saveFile(name,data){
+ try{const dl=await cap('downloads');if(dl&&dl.save){await dl.save({filename:name,data});toast('Saved '+name);return true}}catch(e){}
+ try{
+  const mime=name.endsWith('.png')?'image/png':'application/pdf';
+  const blob=data instanceof Blob?data:new Blob([data],{type:mime});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=name;document.body.appendChild(a);a.click();
+  setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url)},1200);
+  toast('Saved '+name);return true;
+ }catch(x){toast('Could not save file: '+(x.message||x));return false}
+}
+
+/* ================= notifications ================= */
+function toast(text,opts={}){
+ const el=document.createElement('div');el.className='toast';
+ el.innerHTML=`${opts.push?`<div class="app">${ic('mark')} Akrit</div>`:''}<div>${esc(text)}</div>`;
+ $('#toasts').appendChild(el);setTimeout(()=>el.remove(),opts.push?9000:4200)}
+const push=text=>toast(text,{push:true});
+function checkNotifs(){
+ const p=prof();if(!p||p.role==='compliance')return;
+ let ch=false;
+ for(const m of mine()){
+  if(m.status==='pending')continue;const key=m.id+':'+m.status;if(S.notified[key])continue;S.notified[key]=1;ch=true;
+  const r=REC[m.rid].name;
+  if(m.status==='verified'){
+   if(p.role==='kabadi')push(S.lang==='en'?`Your handover of ${nf(m.wv)}kg was confirmed by ${r}. ${inr(amountOf(m))} credited.`:S.lang==='hi'?`आपका ${nf(m.wv)} किलो का हैंडओवर ${r} ने पक्का किया। ${inr(amountOf(m))} जमा हुए।`:`तुमचे ${nf(m.wv)} किलोचे हस्तांतरण ${r} ने निश्चित केले. ${inr(amountOf(m))} जमा झाले.`);
+   else push(`${r} verified your ${nf(m.wv)}kg of ${CAT[m.cat].en.toLowerCase()}. ${inr(amountOf(m))} is added to your waste history.`)}
+  else push(`Handover ${m.id} needs a check: ${m.note||'flagged by the recycler'}. Call support if you need help.`)}
+ if(ch)persist()}
+
+/* ================= QR ================= */
+function baseUrl(){try{const u=location.href.split('#')[0];return /^https?:/.test(u)?u:''}catch(e){return''}}
+function mLink(id){const b=baseUrl();return b?`${b}#m-${id}`:`AKRIT:${id}`}
+function qrMatrix(text){try{const q=qrcode(0,'M');q.addData(text);q.make();const n=q.getModuleCount();return{n,d:(r,c)=>q.isDark(r,c)}}catch(e){return null}}
+function qrSvg(text){
+ const q=qrMatrix(text);if(!q)return'<div style="width:96px;height:96px;display:grid;place-items:center;font-size:.7rem;color:#555">QR unavailable</div>';
+ let d='';for(let r=0;r<q.n;r++)for(let c=0;c<q.n;c++)if(q.d(r,c))d+=`M${c} ${r}h1v1h-1z`;
+ return`<svg viewBox="0 0 ${q.n} ${q.n}" shape-rendering="crispEdges" role="img" aria-label="QR code for verifying this manifest"><path d="${d}"/></svg>`}
+
+/* ================= PDF ================= */
+const TEAL=[13,92,99];
+function fitTxt(d,s,w){s=String(s);while(d.getTextWidth(s)>w&&s.length>1)s=s.slice(0,-1);return s}
+function pdfTable(d,y,cols,rows,rh=6.4){
+ const M=14,W=210;
+ const hdr=()=>{d.setFillColor(...TEAL);d.rect(M,y,W-2*M,rh+.8,'F');d.setTextColor(255);d.setFont('helvetica','bold');d.setFontSize(7.5);let x=M;cols.forEach(c=>{d.text(c.h,c.r?x+c.w-1.5:x+1.5,y+4.7,{align:c.r?'right':'left'});x+=c.w});y+=rh+.8;d.setFont('helvetica','normal');d.setTextColor(27,40,41)};
+ hdr();
+ rows.forEach((r,i)=>{
+  if(y>276){d.addPage();y=16;hdr()}
+  if(i%2){d.setFillColor(244,241,236);d.rect(M,y,W-2*M,rh,'F')}
+  let x=M;cols.forEach((c,j)=>{d.setFontSize(7.5);d.setFont(c.mono?'courier':'helvetica','normal');const s=fitTxt(d,r[j]??'',c.w-3);d.text(s,c.r?x+c.w-1.5:x+1.5,y+4.4,{align:c.r?'right':'left'});x+=c.w});
+  y+=rh});
+ return y}
+function pdfFooters(d,label){const n=d.getNumberOfPages();for(let i=1;i<=n;i++){d.setPage(i);d.setFontSize(7.5);d.setFont('helvetica','normal');d.setTextColor(110,120,122);d.text(label,14,291);d.text(`Page ${i} of ${n}`,196,291,{align:'right'})}}
+function pdfQr(d,text,x,y,size){
+ const q=qrMatrix(text);d.setFillColor(255,255,255);d.rect(x-2,y-2,size+4,size+4,'F');if(!q)return;
+ const u=size/q.n;d.setFillColor(20,32,31);for(let r=0;r<q.n;r++)for(let c=0;c<q.n;c++)if(q.d(r,c))d.rect(x+c*u,y+r*u,u+.02,u+.02,'F')}
+const JS=()=>window.jspdf&&window.jspdf.jsPDF;
+async function pdfManifest(m,cpcb){
+ if(!JS()){toast('The PDF tool did not load. Check your connection and try again.');return}
+ const d=new (JS())({unit:'mm',format:'a4'}),W=210,rec=REC[m.rid],link=mLink(m.id);
+ d.setTextColor(232,238,238);d.setFont('helvetica','bold');d.setFontSize(84);d.text('SANCHAY',W/2+4,170,{align:'center',angle:32});
+ d.setFillColor(...TEAL);d.rect(0,0,W,40,'F');d.setTextColor(255);d.setFontSize(21);d.text(cpcb?'E-waste handover manifest':'Akrit Digital Manifest',14,19);
+ d.setFont('helvetica','normal');d.setFontSize(9);d.text(cpcb?'Prepared for CPCB EPR portal records · issued via Sanchay verification':'Verified handover certificate · issued via Sanchay verification',14,28);
+ pdfQr(d,link,W-14-26,7,26);
+ d.setTextColor(...TEAL);d.setFont('courier','bold');d.setFontSize(21);d.text(m.id,14,56);
+ d.setDrawColor(200,194,180);d.setLineDashPattern([1.2,1.2],0);d.line(14,61,W-14,61);d.setLineDashPattern([],0);
+ const rows=[['Generator',(m.named?m.gname:'Anonymised generator '+m.gcode)+' · '+m.zone],['Generator type',m.role==='shop'?'Repair shop':'Kabadiwala (informal collector)'],['Waste category',CAT[m.cat].en+' (e-waste)'],
+  ['Recycler',rec.name],['CPCB licence',rec.lic],['Pickup',fmtDT(m.pickupAt)],['Delivery confirmed',m.deliveredAt?fmtDT(m.deliveredAt):'Awaiting recycler'],['GPS of handover',m.lat.toFixed(5)+' N, '+m.lng.toFixed(5)+' E']];
+ let y=71;rows.forEach(r=>{d.setFont('helvetica','normal');d.setFontSize(9);d.setTextColor(95,105,107);d.text(r[0],14,y);d.setFont('helvetica','bold');d.setFontSize(10.5);d.setTextColor(27,40,41);d.text(r[1],W-14,y,{align:'right'});y+=9});
+ d.setFillColor(231,241,241);d.roundedRect(14,y+2,W-28,30,2,2,'F');
+ d.setFont('helvetica','normal');d.setFontSize(8.5);d.setTextColor(95,105,107);d.text('Logged by generator',30,y+11);d.text('Verified by recycler',W-30,y+11,{align:'right'});
+ d.setFont('helvetica','bold');d.setFontSize(20);d.setTextColor(27,40,41);d.text(nf(m.wl)+' kg',30,y+22);d.text(m.wv!=null?nf(m.wv)+' kg':'Pending',W-30,y+22,{align:'right'});
+ if(m.wv!=null){const dl=m.wv-m.wl;d.setFontSize(9);d.setTextColor(95,105,107);d.text((dl>=0?'+':'')+nf(dl)+' kg ('+(dl/m.wl*100).toFixed(1)+'%)',W/2,y+22,{align:'center'})}
+ y+=42;const st={verified:['EPR CREDIT ELIGIBLE',[23,101,61],[228,244,234]],pending:['AWAITING RECYCLER CONFIRMATION',[138,75,0],[251,235,214]],flagged:['FLAGGED FOR REVIEW',[179,38,30],[251,229,226]]}[m.status];
+ d.setFillColor(...st[2]);d.setDrawColor(...st[1]);d.setLineWidth(.7);d.roundedRect(14,y,W-28,16,2,2,'FD');d.setTextColor(...st[1]);d.setFontSize(13);d.text(st[0],W/2,y+10.3,{align:'center'});
+ if(m.note){d.setFont('helvetica','normal');d.setFontSize(9);d.setTextColor(95,105,107);d.text('Note: '+m.note,14,y+24)}
+ d.setFont('helvetica','normal');d.setFontSize(8);d.setTextColor(110,120,122);d.text('Scan the QR code or open the link to verify this manifest: '+(link.length>90?link.slice(0,90)+'...':link),14,282);
+ d.text('Generated '+fmtDT(Date.now())+'. Weights in kilograms.',14,287);
+ await saveFile(`Akrit-${cpcb?'CPCB-':''}${m.id}.pdf`,d.output('arraybuffer'))}
+
+async function pdfHistory(p,rows,desc){
+ if(!JS()){toast('The PDF tool did not load. Check your connection and try again.');return}
+ const d=new (JS())({unit:'mm',format:'a4'});
+ d.setFillColor(...TEAL);d.rect(0,0,210,34,'F');d.setTextColor(255);d.setFont('helvetica','bold');d.setFontSize(18);d.text('Green Shop record',14,16);d.setFont('helvetica','normal');d.setFontSize(9);d.text('E-waste handover history · generated through Akrit',14,24);
+ d.setTextColor(27,40,41);d.setFont('helvetica','bold');d.setFontSize(12);d.text(p.shopName,14,46);d.setFont('helvetica','normal');d.setFontSize(9);d.setTextColor(95,105,107);
+ d.text(`Phone ${p.phone}${p.gst?' · GSTIN '+p.gst:''}`,14,52);d.text(`Generated ${fmtDT(Date.now())} · ${desc}`,14,57);
+ const v=rows.filter(m=>m.status==='verified');
+ d.setTextColor(27,40,41);d.setFont('helvetica','bold');d.setFontSize(10);d.text(`${rows.length} handovers · ${nf(sum(v,m=>m.wv))} kg verified · Rs. ${Math.round(sum(v,m=>amountOf(m))).toLocaleString('en-IN')} paid`,14,66);
+ pdfTable(d,71,[{h:'Manifest ID',w:36,mono:1},{h:'Date',w:23},{h:'Category',w:20},{h:'Recycler',w:40},{h:'Logged kg',w:20,r:1},{h:'Verified kg',w:21,r:1},{h:'Paid (Rs.)',w:22,r:1}],
+  rows.map(m=>[m.id,fmtD(m.pickupAt),CAT[m.cat].en,REC[m.rid].name,nf(m.wl),m.wv!=null?nf(m.wv):'-',amountOf(m)!=null?Math.round(amountOf(m)).toLocaleString('en-IN'):'-']));
+ pdfFooters(d,'Akrit · Green Shop record · each manifest can be verified by its QR code');
+ await saveFile(`Green-Shop-record-${ymd(Date.now())}.pdf`,d.output('arraybuffer'))}
+
+async function pdfReport(p,o,rows){
+ if(!JS()){toast('The PDF tool did not load. Check your connection and try again.');return false}
+ const d=new (JS())({unit:'mm',format:'a4'}),ver=rows.filter(m=>m.status==='verified'),kgV=sum(ver,m=>m.wv),tgt=p.target,pct=kgV/tgt*100;
+ d.setFillColor(...TEAL);d.rect(0,0,210,36,'F');d.setTextColor(255);d.setFont('helvetica','bold');d.setFontSize(19);d.text('EPR compliance report',14,17);d.setFont('helvetica','normal');d.setFontSize(9);d.text('Structured for CPCB EPR portal upload · e-waste handovers verified through Akrit',14,26);
+ const ref='RPT-'+ymd(Date.now()).replace(/-/g,'').slice(2)+'-'+rid4().toUpperCase();
+ d.setTextColor(27,40,41);d.setFontSize(12);d.setFont('helvetica','bold');d.text(p.company,14,48);d.setFont('helvetica','normal');d.setFontSize(9);d.setTextColor(95,105,107);
+ d.text(`${p.idType} ${p.idNo} · ${p.email}`,14,54);d.text(`Period ${fmtD(parseYmd(o.from))} to ${fmtD(parseYmd(o.to,1))} · Reference ${ref} · Generated ${fmtDT(Date.now())}`,14,59);
+ let y=69;const box=(x,w,l,v)=>{d.setFillColor(244,241,236);d.roundedRect(x,y,w,20,2,2,'F');d.setFontSize(7.5);d.setTextColor(95,105,107);d.setFont('helvetica','normal');d.text(l,x+4,y+7);d.setFontSize(14);d.setFont('helvetica','bold');d.setTextColor(27,40,41);d.text(v,x+4,y+15.5)};
+ box(14,43,'Manifests in report',String(rows.length));box(60,43,'Verified weight',nf(kgV)+' kg');box(106,43,'EPR credits claimable',String(Math.floor(kgV/p.kgPerCredit)));box(152,44,'Against quarterly target',pct.toFixed(1)+'%');
+ y+=28;d.setFont('helvetica','bold');d.setFontSize(10);d.setTextColor(27,40,41);d.text('By category',14,y);y+=3;
+ const bc=CATS.map(c=>{const r=ver.filter(m=>m.cat===c.id);return[c.en,String(r.length),nf(sum(r,m=>m.wv))]}).filter(r=>+r[1]>0);
+ y=pdfTable(d,y,[{h:'Category',w:100},{h:'Verified manifests',w:40,r:1},{h:'Verified kg',w:42,r:1}],bc.length?bc:[['No verified handovers in this selection','0','0']])+8;
+ d.setFont('helvetica','bold');d.setFontSize(10);d.text('By recycler',14,y);y+=3;
+ const br=Object.values(REC).map(r=>{const x=ver.filter(m=>m.rid===r.id);return[r.name,r.lic,String(x.length),nf(sum(x,m=>m.wv))]}).filter(r=>+r[2]>0);
+ y=pdfTable(d,y,[{h:'Recycler',w:62},{h:'CPCB licence',w:50,mono:1},{h:'Manifests',w:30,r:1},{h:'Verified kg',w:40,r:1}],br.length?br:[['None','','0','0']])+10;
+ if(y>235){d.addPage();y=18}
+ d.setFont('helvetica','bold');d.setFontSize(10);d.text('Declaration',14,y);d.setFont('helvetica','normal');d.setFontSize(8.5);d.setTextColor(60,70,72);
+ d.text(d.splitTextToSize('Each manifest in the annexure carries a QR code that resolves to its record: generator, recycler, licence, weights, timestamps and GPS point. Verified weight is the weight confirmed by the recycler at delivery.',182),14,y+6);
+ d.setDrawColor(60,70,72);d.setLineWidth(.2);d.line(14,y+30,84,y+30);d.line(120,y+30,196,y+30);d.setFontSize(8);d.text('Authorised signatory',14,y+34);d.text('Date and company seal',120,y+34);
+ d.addPage();d.setTextColor(27,40,41);d.setFont('helvetica','bold');d.setFontSize(12);d.text('Annexure: manifests',14,18);
+ pdfTable(d,23,[{h:'Manifest ID',w:34,mono:1},{h:'Date',w:21},{h:'Generator',w:34},{h:'Category',w:18},{h:'Logged',w:15,r:1},{h:'Verified',w:16,r:1},{h:'Recycler',w:30},{h:'Status',w:14}],
+  rows.map(m=>[m.id,fmtD(m.pickupAt),(m.named&&!p.anonymize)?m.gname:'Anonymised '+m.gcode,CAT[m.cat].en,nf(m.wl),m.wv!=null?nf(m.wv):'-',REC[m.rid].name,m.status[0].toUpperCase()+m.status.slice(1)]),6);
+ pdfFooters(d,`${p.company} · ${ref}`);
+ return {ok:await saveFile(`EPR-report-${o.from}-to-${o.to}.pdf`,d.output('arraybuffer')),ref,kg:kgV}}
+
+
+/* ================= views ================= */
+IC.wrench='<path d="M14.5 6.5a4 4 0 0 0-5 5l-6 6a2 2 0 0 0 3 3l6-6a4 4 0 0 0 5-5l-2.5 2.5-2.5-.5-.5-2.5z"/>';
+const app=$('#app');
+const reduced=()=>window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+const isNarrow=()=>window.innerWidth<900;
+function col(inner,cls=''){return`<div class="gut"><div class="col ${cls}">${inner}</div></div>`}
+const langBar=dark=>`<div class="lang ${dark?'dark':''}" role="group" aria-label="${t('language')}">${LANGS.map(([c,l])=>`<button type="button" data-act="lang" data-v="${c}" aria-pressed="${S.lang===c}" lang="${c}">${l}</button>`).join('')}</div>`;
+function sChip(s){const x={verified:['ok','check'],pending:['warn','clock'],flagged:['bad','x']}[s];return`<span class="chip ${x[0]}">${ic(x[1])}${t('status.'+s)}</span>`}
+const genLabel=m=>{const p=prof();return(m.named&&!(p&&p.anonymize))?esc(m.gname):`Anonymised <span class="mono">${esc(m.gcode)}</span>`};
+const photoOrIcon=(m,cls='thumb')=>m.photo?`<img class="${cls}" loading="lazy" alt="Photo of ${esc(CAT[m.cat].en.toLowerCase())}" src="${m.photo}">`:`<span class="${cls}">${cic(m.cat).replace('<svg','<svg style="width:28px;height:28px;stroke:currentColor;fill:none;stroke-width:2"')}</span>`;
+const skel=n=>Array.from({length:n},()=>'<div class="sk" style="height:76px;border-radius:14px"></div>').join('');
+function go(fn){const f=()=>{fn();render()};if(document.startViewTransition&&!reduced()){try{document.startViewTransition(f);return}catch(e){}}f()}
+function readImg(file,max=170,q=.6){return new Promise((res,rej)=>{const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(im.width*k));c.height=Math.max(1,Math.round(im.height*k));c.getContext('2d').drawImage(im,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',q))};im.onerror=rej;im.src=fr.result};fr.onerror=rej;fr.readAsDataURL(file)})}
+function samplePhoto(){const c=document.createElement('canvas');c.width=c.height=150;const x=c.getContext('2d');x.fillStyle='#CFDCDC';x.fillRect(0,0,150,150);x.strokeStyle='#9DB5B6';x.lineWidth=2;for(let i=-150;i<150;i+=22){x.beginPath();x.moveTo(i,150);x.lineTo(i+150,0);x.stroke()}x.fillStyle='#0D5C63';x.font='700 18px sans-serif';x.textAlign='center';x.fillText('SAMPLE',75,82);return c.toDataURL('image/jpeg',.6)}
+function cacheSave(){try{const o=Object.values(S.remote.m).slice(-200).map(m=>({...m,photo:null}));localStorage.setItem('akrit.cache',JSON.stringify(o))}catch(e){}}
+function cacheLoad(){try{const a=JSON.parse(localStorage.getItem('akrit.cache')||'[]');const o={};a.forEach(m=>{o[m.id]=m});S.remote.m=o}catch(e){}}
+const relDay=ts=>{const d=Math.round((sod(ts)-sod(Date.now()))/DAY);return d===0?'today':d===1?'tomorrow':new Date(ts).toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'short'})};
+const dbLabel=()=>({live:['Shared data','dotlive'],local:['This device only','dotlive off'],readonly:['View only for you','dotlive off'],error:['Sync problem','dotlive off'],connecting:['Connecting','dotlive off']}[S.dbState]||['','dotlive off']);
+
+/* ================= shell ================= */
+function demobar(){
+ const [lab,cls]=dbLabel(),inApp=S.view==='app'||S.view==='onboard'||S.view==='recycler'||S.pub;
+ return`<div class="demobar"><div class="gut"><div class="col">
+  <strong class="tag" style="font-weight:700">Akrit demo</strong>
+  ${inApp?`<button type="button" data-act="home">${ic('user')}Switch role</button>`:''}
+  <button type="button" data-act="recdesk">${ic('truck')}Recycler desk</button>
+  <button type="button" data-act="offline" aria-pressed="${S.offline}">${ic('wifioff')}Test offline</button>
+  <button type="button" data-act="about-open">${ic('shield')}Project Vision</button>
+  <span class="tag" style="margin-left:auto;display:inline-flex;align-items:center;gap:6px"><span class="${cls}"></span>${lab}</span>
+ </div></div></div>`}
+
+function render(){
+ let h=demobar();
+ if(S.pub)h+=viewPublic();
+ else if(S.view==='select')h+=viewSelect();
+ else if(S.view==='onboard')h+=viewOnboard();
+ else if(S.view==='recycler')h+=viewRecycler();
+ else if(S.role==='kabadi')h+=viewKabadi();
+ else if(S.role==='shop')h+=viewShop();
+ else if(S.role==='compliance')h+=viewCompliance();
+ h+=overlays();
+ app.innerHTML=h;after();
+}
+function softRender(){
+ const a=document.activeElement;
+ if(a&&/^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName)&&a.type!=='button'&&app.contains(a)){S.ui.pending=true;return}
+ render()}
+document.addEventListener('focusout',()=>{if(S.ui.pending){setTimeout(()=>{const a=document.activeElement;if(!(a&&/^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName))){S.ui.pending=false;render()}},120)}});
+
+function after(){
+ animateDial();
+ if(S.ui.fo){S.ui.fo=false;const f=$$('.overlay [data-first]').pop();if(f)f.focus({preventScroll:true})}
+ const p=prof();
+ if(p&&p.role==='shop'&&$('.gbadge.unlock')&&!p.badgeSeen){setTimeout(()=>{p.badgeSeen=true;persist()},1900)}
+}
+function animateDial(){
+ const el=$('#dial');if(!el)return;
+ const target=Math.min(100,Math.max(0,+el.dataset.pct||0)),from=S.ui.dialLast??0,arc=$('.arc',el),txt=$('text',el),C=2*Math.PI*48;
+ const set=v=>{arc.style.strokeDasharray=`${C*v/100} ${C}`;txt.textContent=Math.round(v)+'%';el.classList.toggle('ok',v>=70)};
+ if(reduced()||from===target){set(target);S.ui.dialLast=target;return}
+ set(from);const t0=performance.now();let crossed=false;
+ (function step(now){const k=Math.min(1,(now-t0)/1000),e=1-Math.pow(1-k,3),v=from+(target-from)*e;set(v);
+  if(!crossed&&from<70&&v>=70){crossed=true;el.classList.add('pulse');try{navigator.vibrate&&navigator.vibrate(35)}catch(x){}}
+  if(k<1)requestAnimationFrame(step);else S.ui.dialLast=target})(t0)}
+
+/* ================= role select & onboarding ================= */
+function viewSelect(){
+ const defs=[['kabadi','k','truck'],['shop','s','wrench'],['compliance','c','building']];
+ const cards=defs.map(([r,c,i])=>{const p=S.profiles[r];return`<button type="button" class="rolecard ${c}" data-act="pick" data-v="${r}"><span class="ico">${ic(i)}</span><span><b>${t('role.'+c)}</b><span class="d">${t('role.'+c+'.d')}</span></span>${p?`<span class="cont chip info">${t('resume')}</span>`:''}</button>`}).join('');
+ return col(`<div class="page">
+  <div class="row sp"><span class="brandmark" style="color:var(--primary-ink)"><span style="width:40px;height:40px;border-radius:12px;background:var(--primary);color:#fff;display:grid;place-items:center">${ic('mark')}</span>Akrit</span>${langBar(true)}</div>
+  <h1 class="h1" style="margin:30px 0 16px">${t('role.q')}</h1>
+  <div class="stack" style="gap:14px">${cards}</div>
+  <p class="muted" style="margin-top:20px;font-size:.9rem">Each role has its own sign-up and its own screens. Records you create here are shared between roles, so a handover logged as a kabadiwala shows up for the recycler and the compliance officer.</p>
+ </div>`)}
+
+const OB={kabadi:['phone','otp','photo'],shop:['phone','otp','shop'],compliance:['email','company','verify']};
+const KZONES=['Dharavi','Kurla','Andheri','Navi Mumbai','Thane','Vasai'];
+function viewOnboard(){
+ const o=S.ob,steps=OB[o.role],id=steps[o.step],d=o.d,c=o.role==='compliance';
+ const bind=(k,extra='')=>`data-bind="ob.d.${k}" value="${esc(d[k]??'')}" ${extra}`;
+ let body='',title='';
+ if(id==='phone'){title=t('phone');body=`<div class="field"><label for="f-ph">${t('phone')}</label><div class="row"><span class="chip mute" style="min-height:52px;padding:0 14px;font-size:1rem">+91</span><input id="f-ph" type="tel" inputmode="numeric" maxlength="10" autocomplete="tel-national" placeholder="98XXXXXXXX" ${bind('phone')}></div><div class="err" id="err" role="alert"></div></div><button class="btn btn-primary btn-block" data-act="ob-next">${t('sendotp')}</button>`}
+ else if(id==='otp'){title=t('otp');body=`<p class="muted" style="margin-bottom:14px">+91 ${esc(d.phone||'')}</p><div class="field"><label for="f-otp">${t('otp')}</label><input id="f-otp" class="otp" type="text" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="••••••" ${bind('otp')}><div class="hint">Demo: the OTP is <b class="mono">123456</b>.</div><div class="err" id="err" role="alert"></div></div><button class="btn btn-primary btn-block" data-act="ob-next">${t('verify')}</button>`}
+ else if(id==='photo'){title=t('selfie');body=`<label class="photo-btn" style="margin-bottom:16px">${d.photo?`<img alt="Your photo" src="${d.photo}">`:`${ic('camera').replace('class="i "','class="i" style="width:48px;height:48px"')}<span>${t('selfie')}</span>`}<input type="file" accept="image/*" capture="user" data-photo="ob.d" aria-label="${t('selfie')}"></label>
+   ${d.photo?'':`<button type="button" class="link" data-act="ob-sample">${t('samplephoto')}</button>`}
+   <div class="field" style="margin-top:8px"><span class="lbl">${t('area')}</span><div class="seg" role="radiogroup" aria-label="${t('area')}">${KZONES.map(z=>`<button type="button" role="radio" aria-checked="${(d.zone||'Dharavi')===z}" data-act="ob-zone" data-v="${z}">${z}</button>`).join('')}</div></div>
+   <div class="field"><label for="f-nm">${t('name_opt')}</label><input id="f-nm" type="text" autocomplete="given-name" ${bind('name')}></div>
+   <div class="err" id="err" role="alert"></div><button class="btn btn-primary btn-block" data-act="ob-next">${t('finish')}</button>`}
+ else if(id==='shop'){title='Your shop';body=`<div class="field"><label for="f-sn">Shop name</label><input id="f-sn" type="text" autocomplete="organization" ${bind('shopName')}></div>
+   <div class="field"><span class="lbl">Photo of the shop signboard</span><label class="photo-btn">${d.photo?`<img alt="Shop signboard" src="${d.photo}">`:`${ic('camera').replace('class="i "','class="i" style="width:40px;height:40px"')}<span>Tap to photograph the signboard</span>`}<input type="file" accept="image/*" capture="environment" data-photo="ob.d" aria-label="Photograph the shop signboard"></label>${d.photo?'':`<button type="button" class="link" data-act="ob-sample">${t('samplephoto')}</button>`}</div>
+   <div class="field"><label for="f-gst">GST number <span class="muted">(optional for now)</span></label><input id="f-gst" type="text" maxlength="15" autocapitalize="characters" placeholder="27ABCDE1234F1Z5" ${bind('gst')}><div class="hint">You need it later to earn the Green Shop badge.</div></div>
+   <div class="field"><label for="f-z">Area</label><select id="f-z" data-bind="ob.d.zone">${Object.keys(ZONES).map(z=>`<option ${((d.zone||'Grant Road')===z)?'selected':''}>${z}</option>`).join('')}</select></div>
+   <div class="err" id="err" role="alert"></div><button class="btn btn-primary btn-block" data-act="ob-next">${t('finish')}</button>`}
+ else if(id==='email'){title='Work email';body=`<div class="field"><label for="f-nm">Your name</label><input id="f-nm" type="text" autocomplete="name" ${bind('name')}></div><div class="field"><label for="f-em">Work email</label><input id="f-em" type="email" autocomplete="email" placeholder="name@yourcompany.com" ${bind('email')}><div class="hint">We verify the company domain. Personal addresses such as Gmail are not accepted.</div></div><div class="err" id="err" role="alert"></div><button class="btn btn-primary btn-block" data-act="ob-next">Continue</button>`}
+ else if(id==='company'){title='Company';body=`<div class="field"><label for="f-co">Company name</label><input id="f-co" type="text" autocomplete="organization" ${bind('company')}></div><div class="field"><label for="f-id">CIN or GSTIN</label><input id="f-id" type="text" autocapitalize="characters" maxlength="21" placeholder="21-character CIN or 15-character GSTIN" ${bind('idNo')}><div class="hint">CIN example: L12345MH2000PLC123456. GSTIN example: 27ABCDE1234F1Z5.</div></div><div class="err" id="err" role="alert"></div><button class="btn btn-primary btn-block" data-act="ob-next">Continue</button>`}
+ else if(id==='verify'){title='Verify email';body=`<p class="muted" style="margin-bottom:14px">We sent a 6-digit code to <b>${esc(d.email||'')}</b>.</p><div class="field"><label for="f-otp">Verification code</label><input id="f-otp" class="otp" type="text" inputmode="numeric" maxlength="6" placeholder="••••••" ${bind('otp')}><div class="hint">Demo: the code is <b class="mono">123456</b>.</div><div class="err" id="err" role="alert"></div></div><button class="btn btn-primary btn-block" data-act="ob-next">Verify and open dashboard</button>`}
+ const pct=Math.round((o.step+1)/steps.length*100);
+ const top=`<div class="row sp" style="margin-bottom:18px"><button type="button" class="btn btn-ghost btn-sm" data-act="ob-back">${ic('back')}${t('back')}</button>${langBar(true)}</div>`;
+ if(c)return col(`<div class="page pc">${top}<div style="display:grid;grid-template-columns:minmax(0,1fr);gap:18px" class="obgrid"><div class="card lift"><div class="row sp" style="margin-bottom:8px"><span class="eyebrow">Step ${o.step+1} of ${steps.length}</span><span class="eyebrow">${pct}%</span></div><div class="prog" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}" aria-label="Sign-up progress"><i style="width:${pct}%"></i></div><h1 class="h1" style="margin:18px 0 14px" data-first tabindex="-1">${title}</h1>${body}</div>
+  <div class="card flat"><h3 style="margin-bottom:10px">What you get</h3><ul class="vlist"><li class="done"><span class="dot">${ic('check')}</span><span>One EPR dashboard for every recycler you work with</span></li><li class="done"><span class="dot">${ic('check')}</span><span>Digital manifests with weights, licences, GPS and QR codes</span></li><li class="done"><span class="dot">${ic('check')}</span><span>A CPCB-ready PDF report in one click</span></li></ul></div></div></div>`,'mid');
+ return col(`<div class="page">${top}<div class="steps" aria-hidden="true">${steps.map((_,i)=>`<i class="${i<=o.step?'on':''}"></i>`).join('')}</div><p class="eyebrow" style="margin:10px 0 6px">${o.step+1} / ${steps.length}</p><h1 class="h1" style="margin-bottom:18px" data-first tabindex="-1">${title}</h1>${body}</div>`)}
+
+function obNext(){
+ const o=S.ob,d=o.d,id=OB[o.role][o.step],err=m=>{const e=$('#err');if(e)e.textContent=m;return false};
+ if(id==='phone'&&!/^[6-9]\d{9}$/.test(d.phone||''))return err('Enter a valid 10-digit mobile number.');
+ if((id==='otp'||id==='verify')&&(d.otp||'')!=='123456')return err('That code is not right. Try 123456 in this demo.');
+ if(id==='photo'&&!d.photo)return err('Take a photo of your face to continue.');
+ if(id==='shop'){if(!(d.shopName||'').trim())return err('Enter your shop name.');if(!d.photo)return err('Add a photo of the shop signboard.');
+  if(d.gst&&!/^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/.test(d.gst.toUpperCase()))return err('That GST number does not look right. Leave it empty to add it later.')}
+ if(id==='email'){if(!(d.name||'').trim())return err('Enter your name.');if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.email||''))return err('Enter a valid email address.');if(FREE_MAIL.test(d.email))return err('Use your company email. Personal addresses are not accepted.')}
+ if(id==='company'){if(!(d.company||'').trim())return err('Enter the company name.');const v=(d.idNo||'').toUpperCase().trim();
+  if(!(/^[LU]\d{5}[A-Z]{2}\d{4}[A-Z]{3}\d{6}$/.test(v)||/^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/.test(v)))return err('Enter a valid 21-character CIN or 15-character GSTIN.');d.idNo=v}
+ if(o.step<OB[o.role].length-1){o.step++;render();return}
+ const base={id:'u'+rid4()+rid4(),createdAt:Date.now()};let p;
+ if(o.role==='kabadi')p={...base,role:'kabadi',phone:d.phone,name:(d.name||'').trim(),photo:d.photo,zone:d.zone||'Dharavi',aadhaarLast4:null,named:false};
+ else if(o.role==='shop')p={...base,role:'shop',phone:d.phone,shopName:d.shopName.trim(),signboard:d.photo,gst:(d.gst||'').toUpperCase(),zone:d.zone||'Grant Road',badgeSeen:false,named:true};
+ else p={...base,role:'compliance',email:d.email,name:d.name.trim(),company:d.company.trim(),idType:d.idNo.length===21?'CIN':'GSTIN',idNo:d.idNo,connected:[],target:1200,kgPerCredit:1,anonymize:false,includeSample:true};
+ S.profiles[o.role]=p;S.role=o.role;S.view='app';S.ob=null;S.tab[o.role]=o.role==='compliance'?'overview':'home';persist();render();window.scrollTo(0,0)}
+
+/* ================= kabadiwala ================= */
+function bottomNav(items,cur){return`<nav class="nav" aria-label="Main">${col(items.map(([k,l,i])=>`<button type="button" data-act="tab" data-v="${k}" ${cur===k?'aria-current="page"':''}>${ic(i)}<span>${l}</span></button>`).join(''))}</nav>`}
+const fab=()=>`<div class="fabwrap"><div class="col"><button type="button" class="fab" data-act="support">${ic('call')}${t('call')}</button></div></div>`;
+const offBanner=()=>isOffline()?`<div class="offline" role="status"><div class="gut"><div class="col">${ic('wifioff')}<span>${t('offline')}</span></div></div></div>`:'';
+
+function viewKabadi(){
+ const p=prof(),tab=S.tab.kabadi;
+ const hdr=`<header class="appbar"><div class="gut"><div class="col"><div><div class="sub">${t('hello')}</div><h1>${esc(p.name||('•••'+p.phone.slice(-4)))}</h1></div>${langBar()}</div></div></header>`;
+ let b='';
+ if(tab==='home')b=kHome();else if(tab==='coll')b=kColl();else b=kEarn();
+ return hdr+offBanner()+col(`<main class="page">${b}</main>`)+bottomNav([['home',t('home'),'home'],['coll',t('coll'),'list'],['earn',t('earn'),'rupee']],tab)+fab()}
+
+function kHome(){
+ const ms=mine(),t0=sod(Date.now()),td=ms.filter(m=>m.pickupAt>=t0&&m.status!=='flagged');
+ const val=m=>m.status==='verified'?amountOf(m):amountExp(m);
+ const tot=sum(td,val),conf=sum(td.filter(m=>m.status==='verified'),amountOf),wait=tot-conf,extra=tot*(1-MIDDLE),wk=ms.filter(m=>m.pickupAt>=Date.now()-7*DAY).length;
+ return`<div class="stack" style="gap:16px">
+  <button type="button" class="cta-big" data-act="log">${ic('camera')}<b>${t('logcta')}</b><span>${t('logsub')}</span></button>
+  <div class="stats"><div class="card stat big"><div class="v" id="todayv">${inr(tot)}</div><div class="l">${t('today')}</div>${wait>0?`<div class="l" style="margin-top:6px">${inr(conf)} ${t('confirmed')} · ${inr(wait)} ${t('waiting')}</div>`:''}</div><div class="card stat"><div class="v">${wk}</div><div class="l">${t('week')}</div></div></div>
+  <div class="card motiv"><div class="row sp"><span class="eyebrow">${t('extra')}</span></div><div class="extra">${t('extra')}: ${inr(extra)}</div>
+   <div class="track" role="img" aria-label="${t('middle')} ${inr(tot*MIDDLE)}. ${t('youget')} ${inr(tot)}."><span class="a" style="width:${tot?MIDDLE*100:100}%"></span><span class="b" style="width:${tot?(1-MIDDLE)*100:0}%"></span></div>
+   <div class="legend"><span>${t('middle')}: ${inr(tot*MIDDLE)}</span><span>${t('youget')}: ${inr(tot)}</span></div></div>
+  ${ms.length?'':`<div class="card flat empty"><h3>${t('none_coll')}</h3><p class="muted">${t('none_sub')}</p><button type="button" class="link" data-act="sample-load">${t('sample_load')}</button></div>`}
+ </div>`}
+
+function mItem(m){
+ const uns=S.queue.some(q=>q.k==='m'&&q.id===m.id),amt=amountOf(m);
+ return`<button type="button" class="item" data-act="open-m" data-id="${m.id}">${photoOrIcon(m)}<span class="grow"><span class="t">${catWord(m.cat)} · ${nf(m.wv??m.wl)} kg</span><br><span class="mono muted" style="font-size:.78rem">${m.id}</span><br><span class="muted" style="font-size:.8rem">${fmtD(m.pickupAt)}</span></span><span style="text-align:right;display:flex;flex-direction:column;gap:6px;align-items:flex-end">${sChip(m.status)}${uns?`<span class="chip mute">${ic('clock')}Waiting to sync</span>`:''}<b class="num">${amt!=null?inr(amt):'~'+inr(amountExp(m))}</b></span></button>`}
+
+function kColl(){
+ const ms=mine().sort((a,b)=>b.pickupAt-a.pickupAt);
+ return`<h2 class="h2" style="margin-bottom:12px">${t('coll')}</h2><div class="stack" style="gap:10px">${S.loading&&!ms.length?skel(4):ms.length?ms.map(mItem).join(''):`<div class="card flat empty"><h3>${t('none_coll')}</h3><p class="muted">${t('none_sub')}</p><button type="button" class="link" data-act="sample-load">${t('sample_load')}</button></div>`}</div>`}
+
+function kEarn(){
+ const p=prof(),ms=mine().filter(m=>m.status!=='flagged'),val=m=>m.status==='verified'?amountOf(m):amountExp(m),ver=ms.filter(m=>m.status==='verified');
+ const days=[...Array(7)].map((_,i)=>{const s=sod(Date.now()-(6-i)*DAY);return{l:new Date(s).toLocaleDateString('en-IN',{weekday:'short'}),v:sum(ms.filter(m=>m.pickupAt>=s&&m.pickupAt<s+DAY),val)}});
+ const mx=Math.max(1,...days.map(d=>d.v)),byCat=CATS.map(c=>({c,kg:sum(ver.filter(m=>m.cat===c.id),m=>m.wv),amt:sum(ver.filter(m=>m.cat===c.id),amountOf)})).filter(x=>x.kg>0);
+ return`<div class="stack" style="gap:14px"><div class="card stat big"><div class="l">${t('earn')} · ${t('confirmed')}</div><div class="v">${inr(sum(ver,amountOf))}</div><div class="l">${nf(sum(ver,m=>m.wv))} kg · ${ver.length}</div></div>
+ <div class="card"><h3 style="margin-bottom:10px">Last 7 days</h3><div class="bars" role="img" aria-label="Earnings for the last 7 days">${days.map(d=>`<div><b>${d.v?inr(d.v):''}</b><i style="height:${Math.max(3,d.v/mx*78)}px"></i><span>${d.l}</span></div>`).join('')}</div></div>
+ <div class="card"><h3 style="margin-bottom:10px">${t('rates')}</h3><div class="rates">${CATS.map(c=>`<div><span style="font-family:var(--font-head);font-weight:800;font-size:1rem">${S.lang==='mr'?c.mr:c.hi}</span><b>${inr(c.rate)}</b><span class="muted">${inr(c.rate*MIDDLE)}</span></div>`).join('')}</div><p class="muted" style="font-size:.8rem;margin-top:8px">${t('youget')} / ${t('middle')} (sample rates)</p></div>
+ ${byCat.length?`<div class="card"><h3 style="margin-bottom:6px">${t('category')}</h3>${byCat.map(x=>`<div class="row sp" style="min-height:44px;border-bottom:1px solid var(--line)"><span>${catWord(x.c.id)} <span class="muted">${nf(x.kg)} kg</span></span><b class="num">${inr(x.amt)}</b></div>`).join('')}</div>`:''}
+ <div class="card" style="border-color:var(--amber-strong)"><div class="row" style="align-items:flex-start">${ic('shield')}<div class="grow"><b>${t('aadhaar')}</b>
+  ${p.aadhaarLast4?`<p class="chip ok" style="margin-top:8px">${ic('check')}Aadhaar •••• ${p.aadhaarLast4} linked</p>`:S.ui.aad?`<div class="field" style="margin:12px 0 8px"><label for="f-aad">12-digit Aadhaar number</label><input id="f-aad" type="text" inputmode="numeric" maxlength="12" data-bind="ui.aadv" value="${esc(S.ui.aadv||'')}"><div class="hint">Only the last 4 digits are kept on this device.</div><div class="err" id="err" role="alert"></div></div><button class="btn btn-primary btn-sm" data-act="aad-save">${t('save')}</button>`:`<button type="button" class="btn btn-outline btn-sm" style="margin-top:10px" data-act="aad-open">${t('aadhaar_btn')}</button>`}</div></div></div></div>`}
+
+/* log flow */
+function logOverlay(){
+ const L=S.ui.log;if(!L)return'';
+ const back=`<button type="button" class="btn btn-ghost btn-sm" data-act="log-back" aria-label="${t('back')}">${ic('back')}${t('back')}</button>`;
+ let b='';
+ if(L.step===1)b=`<h2 class="h1" data-first tabindex="-1" style="margin-bottom:14px">${t('step1')}</h2><label class="photo-btn" style="min-height:46vh">${ic('camera').replace('class="i "','class="i" style="width:72px;height:72px"')}<span style="font-size:1.2rem">${t('tapcam')}</span><input type="file" accept="image/*" capture="environment" data-photo="ui.log" aria-label="${t('step1')}"></label><div style="text-align:center;margin-top:8px"><button type="button" class="link" data-act="log-sample">${t('samplephoto')}</button></div>`;
+ else if(L.step===2)b=`<h2 class="h1" data-first tabindex="-1" style="margin-bottom:14px">${t('step2')}</h2><div class="catgrid">${CATS.map(c=>`<button type="button" class="cat" data-act="cat" data-v="${c.id}" aria-pressed="${L.cat===c.id}"><span style="width:46px;height:46px">${cic(c.id)}</span><b>${S.lang==='mr'?c.mr:c.hi}</b><small>${c.en}</small></button>`).join('')}</div>`;
+ else b=`<h2 class="h1" data-first tabindex="-1" style="margin-bottom:6px">${t('step3')}</h2><p class="muted" style="margin-bottom:22px">${catWord(L.cat)} · ${CAT[L.cat].en}</p>
+  <div class="stepper"><button type="button" data-hold="-0.5" aria-label="Decrease weight">${ic('minus')}</button><div class="grow"><output id="kgv" aria-live="polite">${nf(L.kg)}</output><small>kg</small></div><button type="button" data-hold="0.5" aria-label="Increase weight">${ic('plus')}</button></div>
+  <p class="card flat" style="margin:26px 0;text-align:center">${t('expect')}<br><b style="font:800 1.8rem var(--font-head)" id="expv">${inr(L.kg*CAT[L.cat].rate)}</b><br><span class="muted" style="font-size:.85rem">${inr(CAT[L.cat].rate)}/kg</span></p>
+  <button type="button" class="btn btn-amber btn-block" style="min-height:68px;font-size:1.3rem" data-act="log-ok">${ic('check')}${t('confirm')}</button>`;
+ return`<div class="overlay" role="dialog" aria-modal="true" aria-label="${t('logcta')}"><div class="top"><div class="gut"><div class="col">${back}<div class="grow"><div class="steps" aria-hidden="true">${[1,2,3].map(i=>`<i class="${i<=L.step?'on':''}"></i>`).join('')}</div></div>${isOffline()?`<span class="chip warn">${ic('wifioff')}Offline</span>`:''}</div></div></div>${col(`<div class="page" style="padding-bottom:60px">${b}</div>`)}</div>`}
+function logAdj(dv){const L=S.ui.log;if(!L)return;L.kg=Math.min(250,Math.max(.5,Math.round((L.kg+dv)*2)/2));const a=$('#kgv'),b=$('#expv');if(a)a.textContent=nf(L.kg);if(b)b.textContent=inr(L.kg*CAT[L.cat].rate)}
+
+function successOverlay(){
+ const m=S.ui.success&&getM(S.ui.success);if(!m)return'';
+ const link=mLink(m.id),msg=`Akrit handover code: ${m.id}\n${nf(m.wl)} kg of ${CAT[m.cat].en.toLowerCase()}\nVerify: ${link}`;
+ const off=S.queue.some(q=>q.id===m.id)&&isOffline();
+ return`<div class="overlay" role="dialog" aria-modal="true" aria-label="${t('saved')}">${col(`<div class="success"><div class="coins" aria-hidden="true">${'<span class="coin">₹</span>'.repeat(5)}</div>
+  <h2 class="h1" data-first tabindex="-1">${off?t('savedoff'):t('saved')}</h2><p class="muted" style="margin:6px 0 4px">${catWord(m.cat)} · ${nf(m.wl)} kg</p><p style="font:800 1.6rem var(--font-head);color:var(--ok);margin-bottom:18px">+ ${inr(amountExp(m))}</p>
+  <button type="button" class="codecard" data-act="open-m" data-id="${m.id}" aria-label="${t('viewm')}: ${m.id}"><span class="eyebrow">${t('code')}</span><div class="code">${m.id}</div><span class="muted" style="font-size:.85rem">${t('sendcode')}</span></button>
+  ${off?`<p class="card flat" style="margin-top:12px;text-align:left">${ic('wifioff')} No network right now. The manifest is saved on this phone and registers by itself when you are back online.</p>`:''}
+  <div class="stack" style="margin-top:18px"><a class="btn btn-wa btn-block" style="min-height:64px;font-size:1.15rem" href="https://wa.me/?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">${ic('wa')}${t('wa')}</a>
+  <button type="button" class="btn btn-ghost btn-block" data-act="open-m" data-id="${m.id}">${t('viewm')}</button><button type="button" class="btn btn-primary btn-block" data-act="success-done">${t('done')}</button></div></div>`)}</div>`}
+
+/* ================= shop ================= */
+function verifs(){
+ const p=prof(),ver=mine().filter(m=>m.status==='verified'),kg=sum(ver,m=>m.wv);
+ return[{ok:true,l:'Phone number verified',d:'Confirmed with a one-time code at sign-up.'},
+  {ok:!!p.signboard,l:'Shop signboard photo on file',d:'Added during sign-up.'},
+  {ok:!!p.gst,l:'GST number added',d:'Add your GSTIN in the Green Shop tab.'},
+  {ok:ver.length>=1,l:'First handover verified by a recycler',d:'Schedule a pickup. The recycler confirms the weight.'},
+  {ok:kg>=25,l:'25 kg verified in total',d:`${nf(Math.min(kg,25))} of 25 kg so far.`}]}
+function badgeHero(){
+ const p=prof(),v=verifs(),n=v.filter(x=>x.ok).length,on=n===5,unlock=on&&!p.badgeSeen;
+ return`<div class="card lift"><div class="row" style="gap:16px"><div class="gbadge ${unlock?'unlock':on?'on':''}" role="img" aria-label="Green Shop badge, ${on?'active':'locked'}">${ic('award')}</div>
+  <div class="grow">${on?`<h2 class="h2">${t('s_active')}</h2><p class="muted" style="margin:4px 0 10px">${esc(p.shopName)}</p><button type="button" class="btn btn-primary btn-sm" data-act="badge-share">${ic('share')}Share badge</button>`
+  :`<h2 class="h2">${t('s_verifying')}</h2><div class="prog amber" style="margin:12px 0 6px" role="progressbar" aria-valuemin="0" aria-valuemax="5" aria-valuenow="${n}" aria-label="${t('s_prog',{n})}"><i style="width:${n/5*100}%"></i></div><p class="muted" style="font-size:.9rem">${t('s_prog',{n})}</p>`}</div></div></div>`}
+
+function pickCard(pk){
+ const m=getM(pk.mid),st=m?m.status:'pending',r=REC[pk.rid];
+ return`<div class="card" style="border-color:var(--primary-ink)"><div class="row sp" style="margin-bottom:8px"><span class="eyebrow">${st==='pending'?'Pickup confirmed':'Pickup completed'}</span>${m?sChip(st):''}</div>
+  <b style="font:800 1.1rem var(--font-head)">${esc(r.name)}</b><div class="row wrap" style="margin-top:6px;gap:14px;color:var(--muted);font-size:.9rem"><span>${ic('truck')}${esc(pk.vehicle)}</span><span>${ic('cal')}${relDay(pk.date)}, ${pk.window}</span></div>
+  <p style="margin-top:6px">${nf(pk.kg)} kg of ${CAT[pk.cat].en.toLowerCase()}${pk.notes?` · <span class="muted">${esc(pk.notes)}</span>`:''}</p>${m?`<button type="button" class="link" style="margin-top:4px;padding:0" data-act="open-m" data-id="${m.id}">${t('viewm')} · <span class="mono">${m.id}</span></button>`:''}</div>`}
+
+function viewShop(){
+ const p=prof(),tab=S.tab.shop;
+ const hdr=`<header class="appbar"><div class="gut"><div class="col"><div><div class="sub">${p.zone}</div><h1>${esc(p.shopName)}</h1></div>${langBar()}</div></div></header>`;
+ let b='';
+ if(tab==='home'){
+  const ms=mine(),ms0=sod(new Date(new Date().getFullYear(),new Date().getMonth(),1)),mm=ms.filter(m=>m.pickupAt>=ms0&&m.status!=='flagged');
+  const pks=allPickups().filter(x=>x.shop===p.id).sort((a,b)=>b.date-a.date).slice(0,2);
+  b=`<div class="stack" style="gap:14px">${badgeHero()}
+  <div class="card"><div class="row sp"><h3>${t('month')}</h3><span class="eyebrow">${new Date().toLocaleDateString('en-IN',{month:'long'})}</span></div>
+   <div class="row" style="margin:12px 0"><div class="grow"><div class="stat"><div class="v">${nf(sum(mm,m=>m.wv??m.wl))}</div><div class="l">${t('kglogged')}</div></div></div><div class="grow"><div class="stat"><div class="v">${inr(sum(mm.filter(m=>m.status==='verified'),amountOf))}</div><div class="l">${t('earned')}</div></div></div></div>
+   <div class="eyebrow" style="margin-bottom:6px">${t('rates')}</div><div class="rates">${CATS.map(c=>`<div>${c.en}<b>${inr(c.rate)}</b></div>`).join('')}</div></div>
+  <button type="button" class="card lift row" style="text-align:left;background:var(--primary-soft);border-color:var(--primary-ink);min-height:84px;width:100%" data-act="pu-open"><span style="width:52px;height:52px;border-radius:14px;background:var(--primary);color:#fff;display:grid;place-items:center;flex:none">${ic('truck').replace('class="i "','class="i" style="width:28px;height:28px"')}</span><span class="grow"><b style="font:800 1.15rem var(--font-head)">${t('sched')}</b><br><span class="muted">${t('sched_sub')}</span></span>${ic('back').replace('class="i "','class="i" style="transform:rotate(180deg)"')}</button>
+  ${pks.map(pickCard).join('')}</div>`}
+ else if(tab==='hist')b=shopHist();else b=shopBadge();
+ return hdr+offBanner()+col(`<main class="page">${b}</main>`)+bottomNav([['home',t('home'),'home'],['hist',t('hist'),'list'],['badge',t('badge'),'award']],tab)+fab()}
+
+function histRows(){
+ const f=S.ui.hf||(S.ui.hf={cat:'',rid:'',from:'',to:''});
+ let r=mine().filter(m=>m.role==='shop');
+ if(f.cat)r=r.filter(m=>m.cat===f.cat);if(f.rid)r=r.filter(m=>m.rid===f.rid);
+ if(f.from)r=r.filter(m=>m.pickupAt>=parseYmd(f.from));if(f.to)r=r.filter(m=>m.pickupAt<=parseYmd(f.to,1));
+ return r.sort((a,b)=>b.pickupAt-a.pickupAt)}
+const histDesc=()=>{const f=S.ui.hf||{};return[f.cat?CAT[f.cat].en:'All categories',f.rid?REC[f.rid].name:'All recyclers',(f.from||f.to)?`${f.from||'start'} to ${f.to||'today'}`:'All dates'].join(' · ')};
+function histInner(){
+ const rows=histRows();
+ return`<div class="stack" style="gap:10px">${S.loading&&!rows.length?skel(3):rows.length?rows.map(m=>`<button type="button" class="item" data-act="open-m" data-id="${m.id}">${photoOrIcon(m)}<span class="grow"><span class="mono" style="font-size:.82rem;font-weight:600">${m.id}</span><br><span class="muted" style="font-size:.82rem">${CAT[m.cat].en} · ${fmtD(m.pickupAt)}</span><br><span style="font-size:.85rem">${REC[m.rid].name}</span></span><span style="text-align:right;display:flex;flex-direction:column;gap:6px;align-items:flex-end">${sChip(m.status)}<span class="num" style="font-size:.85rem">${m.wv!=null?nf(m.wv)+' kg verified':nf(m.wl)+' kg logged'}</span><b class="num">${amountOf(m)!=null?inr(amountOf(m)):'—'}</b></span></button>`).join(''):'<div class="card flat empty"><h3>No handovers match</h3><p class="muted">Schedule a pickup from Home, or change the filters.</p></div>'}</div>`}
+function shopHist(){
+ const f=S.ui.hf||(S.ui.hf={cat:'',rid:'',from:'',to:''});
+ return`<div class="row sp" style="margin-bottom:12px"><h2 class="h2">${t('hist')}</h2><button type="button" class="btn btn-primary btn-sm" data-act="hist-pdf">${ic('pdf')}${t('export')}</button></div>
+ <div class="filters card flat" style="margin-bottom:12px"><div class="field" style="margin:0"><label for="hf-c">${t('category')}</label><select id="hf-c" data-bind="ui.hf.cat"><option value="">All</option>${CATS.map(c=>`<option value="${c.id}" ${f.cat===c.id?'selected':''}>${c.en}</option>`).join('')}</select></div>
+ <div class="field" style="margin:0"><label for="hf-r">Recycler</label><select id="hf-r" data-bind="ui.hf.rid"><option value="">All</option>${Object.values(REC).map(r=>`<option value="${r.id}" ${f.rid===r.id?'selected':''}>${r.name}</option>`).join('')}</select></div>
+ <div class="field" style="margin:0"><label for="hf-f">From</label><input id="hf-f" type="date" data-bind="ui.hf.from" value="${f.from}"></div><div class="field" style="margin:0"><label for="hf-t">To</label><input id="hf-t" type="date" data-bind="ui.hf.to" value="${f.to}"></div></div>
+ <div id="hbox">${histInner()}</div>`}
+function shopBadge(){
+ const p=prof(),v=verifs();
+ return`<div class="stack" style="gap:14px">${badgeHero()}
+ <div class="card"><h3 style="margin-bottom:12px">Verification checklist</h3><ul class="vlist">${v.map(x=>`<li class="${x.ok?'done':''}"><span class="dot">${x.ok?ic('check'):''}</span><span><b>${x.l}</b><br><span class="muted" style="font-size:.88rem">${x.d}</span></span></li>`).join('')}</ul>
+ ${p.gst?'':`<hr><div class="field"><label for="f-gst2">GST number</label><input id="f-gst2" type="text" maxlength="15" autocapitalize="characters" placeholder="27ABCDE1234F1Z5" data-bind="ui.gst" value="${esc(S.ui.gst||'')}"><div class="err" id="err" role="alert"></div></div><button type="button" class="btn btn-primary btn-sm" data-act="gst-save">${t('save')}</button>`}</div>
+ <div class="card"><div class="switch"><span><b>Show my shop name to brands</b><br><span class="muted" style="font-size:.85rem">When off, brands see an anonymised ID instead.</span></span><button type="button" role="switch" aria-checked="${p.named!==false}" aria-label="Show my shop name to brands" data-act="named"></button></div></div></div>`}
+
+function puOverlay(){
+ const u=S.ui.pu;if(!u)return'';
+ if(u.done){const pk=allPickups().find(x=>x.id===u.done);return`<div class="overlay" role="dialog" aria-modal="true" aria-label="Pickup confirmed"><div class="top"><div class="gut"><div class="col"><h2 data-first tabindex="-1">${t('sched')}</h2></div></div></div>${col(`<div class="page"><div class="stack" style="gap:16px"><div class="chip ok" style="align-self:flex-start">${ic('check')}Pickup confirmed</div>${pk?pickCard(pk):''}<button type="button" class="btn btn-primary btn-block" data-act="pu-close">${t('done')}</button></div></div>`)}</div>`}
+ const minD=ymd(Date.now());
+ return`<div class="overlay" role="dialog" aria-modal="true" aria-label="${t('sched')}"><div class="top"><div class="gut"><div class="col"><button type="button" class="btn btn-ghost btn-sm" data-act="pu-close">${ic('x')}${t('cancel')}</button><h2 data-first tabindex="-1">${t('sched')}</h2></div></div></div>
+ ${col(`<div class="page"><div class="field"><span class="lbl" id="l-cat">${t('category')}</span><div class="seg" role="radiogroup" aria-labelledby="l-cat">${CATS.map(c=>`<button type="button" role="radio" aria-checked="${u.cat===c.id}" data-act="pu-cat" data-v="${c.id}">${c.en}</button>`).join('')}</div></div>
+ <div class="field"><label for="pu-kg">${t('estkg')}: <b class="num"><output id="pu-out" for="pu-kg">${u.kg}</output> kg</b></label><input id="pu-kg" type="range" min="1" max="100" step="1" value="${u.kg}" data-bind="ui.pu.kg" data-out="#pu-out"></div>
+ <div class="field"><label for="pu-d">${t('pdate')}</label><input id="pu-d" type="date" min="${minD}" value="${u.date}" data-bind="ui.pu.date"></div>
+ <div class="field"><label for="pu-n">${t('notes')}</label><textarea id="pu-n" data-bind="ui.pu.notes" placeholder="Gate number, who to ask for, anything the driver should know">${esc(u.notes||'')}</textarea></div>
+ <div class="field"><span class="lbl">Photo of the waste <span class="muted">(optional)</span></span><label class="photo-btn" style="min-height:96px">${u.photo?`<img alt="Waste photo" src="${u.photo}" style="max-height:120px">`:`${ic('camera')}<span>Add photo</span>`}<input type="file" accept="image/*" capture="environment" data-photo="ui.pu" aria-label="Add a photo of the waste"></label></div>
+ <div class="err" id="err" role="alert"></div><button type="button" class="btn btn-primary btn-block" data-act="pu-go">${ic('check')}${t('submit')}</button></div>`)}</div>`}
+function puGo(){
+ const p=prof(),u=S.ui.pu,date=parseYmd(u.date);
+ if(isNaN(date)||date<sod(Date.now())){const e=$('#err');if(e)e.textContent='Choose today or a later date.';return}
+ const rid=ZREC[p.zone]||'r2',r=REC[rid],win=new Date(date).getDay()%2?'14:00–16:00':'10:00–12:00',hr=+win.slice(0,2);
+ const m=newManifest({cat:u.cat,wl:u.kg,photo:u.photo||null,photoSample:false,when:date+hr*36e5});
+ const pk={id:'PK-'+rid4().toUpperCase()+rid4().toUpperCase(),shop:p.id,mid:m.id,cat:u.cat,kg:u.kg,date,window:win,rid,vehicle:u.kg>40?REC.r3.vehicle:r.vehicle,notes:(u.notes||'').trim(),u:Date.now()};
+ putP(pk);u.done=pk.id;
+ const a=hr<12?'am':'pm',h12=h=>h>12?h-12:h,w2=win.split('–').map(x=>h12(+x.slice(0,2))+a);
+ push(`Pickup confirmed for ${relDay(date)}, ${w2[0]}–${w2[1]}. ${r.name} will collect your ${nf(u.kg)}kg of ${CAT[u.cat].en.toLowerCase()}.`);render()}
+
+async function badgePng(){
+ const p=prof(),c=document.createElement('canvas');c.width=900;c.height=520;const x=c.getContext('2d');
+ x.fillStyle='#F9F7F4';x.fillRect(0,0,900,520);x.fillStyle='#0D5C63';x.fillRect(0,0,900,18);
+ const g=x.createLinearGradient(80,60,300,420);g.addColorStop(0,'#F8DA94');g.addColorStop(.55,'#E0A12F');g.addColorStop(1,'#B97A14');
+ x.fillStyle=g;x.beginPath();x.moveTo(190,70);x.lineTo(320,118);x.lineTo(320,270);x.lineTo(190,400);x.lineTo(60,270);x.lineTo(60,118);x.closePath();x.fill();
+ x.strokeStyle='#2E1B00';x.lineWidth=14;x.lineCap='round';x.lineJoin='round';x.beginPath();x.moveTo(135,225);x.lineTo(180,270);x.lineTo(255,175);x.stroke();
+ x.fillStyle='#1B2829';x.font='800 54px sans-serif';x.fillText('Green Shop',380,170);x.font='600 32px sans-serif';x.fillStyle='#0D5C63';x.fillText(p.shopName,380,225);
+ x.font='400 24px sans-serif';x.fillStyle='#566466';x.fillText('E-waste handovers verified through Akrit',380,280);x.fillText('Issued '+fmtD(Date.now()),380,320);
+ const b=await new Promise(r=>c.toBlob(r,'image/png'));await saveFile('Green-Shop-badge.png',b)}
+
+/* ================= manifest document ================= */
+function miniMap(m){
+ const W=480,H=150,pts=[[0,98,170,70,330,92,480,50],[60,150,110,100,150,0],[300,150,330,92,420,0]];
+ return`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Handover point at ${m.lat.toFixed(4)} N, ${m.lng.toFixed(4)} E, ${esc(m.zone)}" style="display:block"><rect width="${W}" height="${H}" fill="#E7F0F0"/>
+ ${[40,80,120].map(y=>`<path d="M0 ${y}H${W}" stroke="#D2E1E2" stroke-width="1"/>`).join('')}${[80,160,240,320,400].map(x=>`<path d="M${x} 0V${H}" stroke="#D2E1E2" stroke-width="1"/>`).join('')}
+ <path d="M0 98C100 90 170 70 250 82S400 60 480 50" stroke="#fff" stroke-width="9" fill="none"/><path d="M110 150C112 110 140 60 160 0" stroke="#fff" stroke-width="6" fill="none"/><path d="M330 150L342 92 420 0" stroke="#fff" stroke-width="6" fill="none"/>
+ <circle cx="240" cy="78" r="26" fill="#0D5C63" opacity=".14"/><path d="M240 100s14-13 14-24a14 14 0 0 0-28 0c0 11 14 24 14 24z" fill="#0D5C63"/><circle cx="240" cy="76" r="5" fill="#fff"/>
+ <text x="12" y="140" font-size="12" font-family="monospace" fill="#0D5C63">${m.lat.toFixed(5)}° N, ${m.lng.toFixed(5)}° E</text><text x="468" y="140" text-anchor="end" font-size="12" fill="#5A6668" font-family="sans-serif">${esc(m.zone)}</text></svg>`}
+function manifestDoc(m){
+ const r=REC[m.rid],dl=m.wv!=null?m.wv-m.wl:null,link=mLink(m.id);
+ const st={verified:['ok','shield','EPR Credit Eligible'],pending:['warn','clock','Awaiting recycler confirmation'],flagged:['bad','alert','Flagged for review']}[m.status];
+ return`<article class="mdoc" aria-label="Digital manifest ${m.id}"><div class="wm" aria-hidden="true"><span>SANCHAY</span></div>
+ <div class="hd"><div><small>Sanchay verified</small><b>Akrit Digital Manifest</b></div><span style="width:44px;height:44px;border:2px solid rgba(255,255,255,.7);border-radius:50%;display:grid;place-items:center">${ic('shield').replace('class="i "','class="i" style="width:24px;height:24px"')}</span></div>
+ <div class="body"><div class="idrow"><div><div class="eyebrow" style="color:var(--paper-muted)">Manifest ID</div><div class="mid">${m.id}</div></div><div class="qr">${qrSvg(link)}</div></div>
+ <dl><dt>Generator</dt><dd>${m.named?esc(m.gname):'Anonymised '+esc(m.gcode)}<br><span style="font-weight:400;color:var(--paper-muted)">${esc(m.zone)}, Mumbai region</span></dd>
+ <dt>Waste category</dt><dd>${CAT[m.cat].en}<br><span style="font-weight:400;color:var(--paper-muted)">E-waste, ${m.role==='shop'?'repair shop leftovers':'informal collection'}</span></dd></dl>
+ <div class="wt"><div><small>Logged by generator</small><b>${nf(m.wl)} kg</b></div><div class="mid2">${dl==null?'→':(dl>=0?'+':'')+nf(dl)+' kg<br><span style="font-weight:400;color:var(--paper-muted)">'+(dl/m.wl*100).toFixed(1)+'%</span>'}</div><div style="text-align:right"><small>Verified by recycler</small><b>${m.wv!=null?nf(m.wv)+' kg':'Pending'}</b></div></div>
+ <dl><dt>Recycler</dt><dd>${esc(r.name)}</dd><dt>CPCB licence</dt><dd class="mono" style="font-size:.82rem">${r.lic}</dd><dt>Pickup</dt><dd>${fmtDT(m.pickupAt)}</dd><dt>Delivery confirmed</dt><dd>${m.deliveredAt?fmtDT(m.deliveredAt):'Awaiting recycler'}</dd></dl>
+ <div class="map">${miniMap(m)}</div>
+ ${m.photo?`<img class="photo" loading="lazy" alt="Photograph of the waste at handover" src="${m.photo}">`:''}
+ <div class="stamp ${st[0]}" style="margin-top:14px">${ic(st[1]).replace('class="i "','class="i" style="width:1.4em;height:1.4em"')}${st[2]}</div>
+ ${m.note?`<p style="margin-top:8px;text-align:center;font-size:.85rem;color:var(--paper-muted)">${esc(m.note)}</p>`:''}
+ <p class="foot">Scan the QR code to verify this manifest. Issued ${fmtD(m.pickupAt)} through Akrit and Sanchay.</p></div></article>`}
+function manifestActions(m){
+ const link=mLink(m.id),msg=`Akrit manifest ${m.id}: ${nf(m.wv??m.wl)} kg of ${CAT[m.cat].en.toLowerCase()}. Verify: ${link}`;
+ return`<div class="stack" style="margin-top:16px"><div class="row wrap"><button type="button" class="btn btn-primary grow" data-act="m-pdf" data-id="${m.id}">${ic('pdf')}Save PDF</button><button type="button" class="btn btn-ghost grow" data-act="m-copy" data-id="${m.id}">${ic('link')}Copy link</button><a class="btn btn-ghost grow" href="https://wa.me/?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">${ic('wa')}WhatsApp</a></div>
+ <p class="muted" style="font-size:.82rem;text-align:center">${ic('check')}Saved on this device. You can open it without a network.</p></div>`}
+function manifestOverlay(){
+ const id=S.ui.manifest;if(!id)return'';const m=getM(id);
+ return`<div class="overlay" role="dialog" aria-modal="true" aria-label="Manifest ${esc(id)}"><div class="top"><div class="gut"><div class="col mid"><button type="button" class="btn btn-ghost btn-sm" data-act="m-close">${ic('back')}${t('back')}</button><h2 data-first tabindex="-1">Manifest</h2></div></div></div>${col(`<div class="page">${m?manifestDoc(m)+manifestActions(m):'<div class="card empty"><h3>Manifest not found</h3></div>'}</div>`,'mid')}</div>`}
+function viewPublic(){
+ const m=getM(S.pub);
+ return col(`<div class="page"><div class="row sp" style="margin-bottom:14px"><span class="chip info">${ic('shield')}Verification view</span><button type="button" class="btn btn-ghost btn-sm" data-act="pub-close">Open Akrit</button></div>
+ ${m?manifestDoc(m)+manifestActions(m):S.loading?`<div class="sk" style="height:520px;border-radius:8px"></div>`:`<div class="card empty">${ic('search')}<h3>No record for ${esc(S.pub)}</h3><p class="muted">This manifest is not in the shared records this page can read. Check the ID, or ask the sender for a new link.</p></div>`}</div>`,'mid')}
+
+/* ================= overlays dispatcher ================= */
+function supportSheet(){
+ if(!S.ui.sheet)return'';
+ return`<div class="overlay dim" data-act="sheet-close" role="dialog" aria-modal="true" aria-label="${t('call')}"><div class="sheet" data-stop><h2 class="h1" data-first tabindex="-1" style="margin-bottom:6px">${t('call')}</h2><p class="muted" style="margin-bottom:14px">A person will pick up. Demo number below.</p><div class="mono" style="font-size:1.7rem;font-weight:700;margin-bottom:16px">${SUPPORT_NO}</div><div class="stack"><a class="btn btn-primary btn-block" href="tel:${SUPPORT_NO.replace(/\s/g,'')}">${ic('call')}${t('call')}</a><button type="button" class="btn btn-ghost btn-block" data-act="copy-no">${ic('copy')}Copy number</button><button type="button" class="btn btn-ghost btn-block" data-act="sheet-close">${t('cancel')}</button></div></div></div>`}
+function aboutModal(){
+ if(!S.ui.about)return'';
+ return`<div class="overlay dim center" data-act="about-close" role="dialog" aria-modal="true" aria-label="Project Akrit Vision & Model">
+  <div class="modal" data-stop style="max-width:680px">
+   <div class="row sp" style="margin-bottom:14px">
+    <div class="row"><span style="width:36px;height:36px;border-radius:10px;background:var(--primary);color:#fff;display:grid;place-items:center">${ic('mark')}</span>
+     <div><h2 class="h1" data-first tabindex="-1" style="font-size:1.35rem">Project Akrit</h2><span class="eyebrow" style="color:var(--primary-ink)">Zomato for India's E-Waste</span></div>
+    </div>
+    <button type="button" class="btn btn-ghost btn-sm" data-act="about-close" aria-label="Close">${ic('x')}</button>
+   </div>
+   <div class="stack" style="gap:14px;font-size:.92rem;line-height:1.55">
+    <div class="card flat" style="background:var(--primary-soft);border-left:4px solid var(--primary)">
+     <p><b>The Core Idea:</b> Think of Akrit like Zomato, but for e-waste. Akrit does not own recycling plants or trucks. It owns the <b>digital manifest</b>, the <b>verified supply chain</b>, and the <b>connection</b> between the informal waste generators and authorized recyclers.</p>
+    </div>
+    <div>
+     <h3 style="font-size:1rem;margin-bottom:6px;display:flex;align-items:center;gap:6px">${ic('shield')}The Problem & Regulatory Tailwinds</h3>
+     <ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px" class="muted">
+      <li><b>1.75 Million MT:</b> India is world's 3rd largest e-waste generator. Maharashtra & Mumbai generate the most.</li>
+      <li><b>Over 90% Informal:</b> Handled by kabadiwalas using hazardous, toxic methods without receipts or safety gear.</li>
+      <li><b>CPCB 70% Target:</b> E-Waste Rules 2022 mandate brands (Samsung, Apple) recycle 70% of sales through CPCB recyclers (floor: ₹22/kg).</li>
+     </ul>
+    </div>
+    <div>
+     <h3 style="font-size:1rem;margin-bottom:6px;display:flex;align-items:center;gap:6px">${ic('user')}Empowering the Informal Sector</h3>
+     <div class="grid2" style="grid-template-columns:1fr 1fr;gap:10px">
+      <div class="card flat" style="padding:10px;font-size:.85rem">
+       <b style="color:var(--text)">Kabadiwalas</b>
+       <p class="muted">Earn ~38% more than street middlemen rates, get instant UPI payments, and gain a formal digital identity.</p>
+      </div>
+      <div class="card flat" style="padding:10px;font-size:.85rem">
+       <b style="color:var(--text)">Repair Shops</b>
+       <p class="muted">Turn component turnover into certified recycling, gain customer trust with the <b>Green Shop</b> credential, and access doorstep pickup.</p>
+      </div>
+     </div>
+    </div>
+    <div>
+     <h3 style="font-size:1rem;margin-bottom:6px;display:flex;align-items:center;gap:6px">${ic('truck')}Confirmed MPCB Recycler Network</h3>
+     <p class="muted" style="font-size:.82rem;margin-bottom:6px">Authorized partners within 60-90 km of Mumbai (Vasai, Palghar, Kurla) to eliminate ghost plant risks:</p>
+     <div style="display:flex;flex-wrap:wrap;gap:6px">
+      <span class="chip ok">${ic('check')}Ecoreco (Vasai - 7,200 MT)</span>
+      <span class="chip ok">${ic('check')}Recyclekaro (Wada - R2 & ISO)</span>
+      <span class="chip ok">${ic('check')}Justdispose (Vasai - 1,200 MT)</span>
+      <span class="chip ok">${ic('check')}E-Incarnation (Tarapur - 950 MT)</span>
+     </div>
+    </div>
+    <div class="card flat" style="background:var(--surface2)">
+     <h3 style="font-size:.9rem;margin-bottom:4px">UN Sustainable Development Goals (SDGs)</h3>
+     <div class="row wrap" style="gap:6px;font-size:.8rem">
+      <span class="chip info">SDG 8: Decent Work</span>
+      <span class="chip info">SDG 9: Industry & Innovation</span>
+      <span class="chip info">SDG 12: Responsible Consumption</span>
+     </div>
+    </div>
+    <div class="row wrap" style="justify-content:flex-end;margin-top:4px">
+     <button type="button" class="btn btn-primary btn-sm" data-act="about-close">Close Vision Brief</button>
+    </div>
+   </div>
+  </div>
+ </div>`;
+}
+function overlays(){return logOverlay()+successOverlay()+puOverlay()+reportModal()+manifestOverlay()+supportSheet()+aboutModal()}
+function closeTop(){
+ if(S.ui.about)S.ui.about=false;else if(S.ui.sheet)S.ui.sheet=false;else if(S.ui.manifest)S.ui.manifest=null;else if(S.ui.modal)S.ui.modal=null;else if(S.ui.pu)S.ui.pu=null;else if(S.ui.success)S.ui.success=null;else if(S.ui.log)S.ui.log=null;else return false;
+ render();return true}
+
+
+/* ================= compliance officer ================= */
+function cdata(){
+ const p=prof(),Q=quarterOf(Date.now()),all=getAll().filter(m=>p.connected.includes(m.rid));
+ const qm=all.filter(m=>m.pickupAt>=Q.start&&m.pickupAt<=Q.end),ver=qm.filter(m=>m.status==='verified'),kg=sum(ver,m=>m.wv);
+ const gens=new Map();qm.forEach(m=>gens.set(m.gid,m.role));
+ return{Q,all,qm,ver,kg,credits:Math.floor(kg/p.kgPerCredit),pct:kg/p.target*100,src:gens.size,kab:[...gens.values()].filter(r=>r==='kabadi').length,shops:[...gens.values()].filter(r=>r==='shop').length}}
+
+function viewCompliance(){
+ const p=prof(),tab=S.tab.compliance;
+ const tabs=[['overview',t('ov'),'chart'],['manifests',t('mf'),'doc'],['recyclers',t('rc'),'truck'],['reports',t('rp'),'pdf'],['settings',t('st'),'settings']];
+ const nav=`<header class="pnav"><div class="gut"><div class="col wide"><span class="brandmark" style="color:var(--primary-ink);font-size:1.25rem;margin-right:12px"><span style="width:32px;height:32px;border-radius:10px;background:var(--primary);color:#fff;display:grid;place-items:center">${ic('mark')}</span>Akrit</span>
+  <nav class="tabs" aria-label="Main">${tabs.map(([k,l])=>`<button type="button" data-act="tab" data-v="${k}" ${tab===k?'aria-current="page"':''}>${l}</button>`).join('')}</nav>
+  <div class="who"><b style="color:var(--text)">${esc(p.company)}</b><br>${esc(p.name)}</div>${langBar(true)}</div></div></header>`;
+ let b='';
+ if(tab==='overview')b=cOverview();else if(tab==='manifests')b=cManifests();else if(tab==='recyclers')b=cRecyclers();else if(tab==='reports')b=cReports();else b=cSettings();
+ const pbar=`<nav class="pbar" aria-label="Main">${col(tabs.map(([k,l,i])=>`<button type="button" data-act="tab" data-v="${k}" ${tab===k?'aria-current="page"':''}>${ic(i)}<span>${l}</span></button>`).join(''),'wide')}</nav>`;
+ return nav+offBanner()+col(`<main class="page pc">${b}</main>`,'wide')+pbar}
+
+function cOverview(){
+ const p=prof(),D=cdata(),C=2*Math.PI*48,last=S.ui.dialLast??0;
+ const need70=Math.max(0,p.target*.7-D.kg);
+ const chip=D.pct>=100?`<span class="chip ok">${ic('check')}Target met</span>`:D.pct>=70?`<span class="chip ok">${ic('check')}Above 70%</span>`:`<span class="chip warn">${ic('clock')}${nf(need70)} kg to reach 70%</span>`;
+ return`<div class="row sp wrap" style="margin-bottom:16px"><div><h1 class="h1">EPR Portfolio Overview</h1><p class="muted">${D.Q.label} · ${fmtD(D.Q.start)} to ${fmtD(D.Q.end)}</p></div><button type="button" class="btn btn-amber" data-act="rep-open">${ic('pdf')}${t('genreport')}</button></div>
+ ${p.connected.length?'':`<div class="cta-banner" style="margin-bottom:16px"><div><h2>${t('connect')}</h2><p style="opacity:.92;margin-top:4px;max-width:52ch">Connect the recyclers you work with. Their verified handovers appear on this dashboard as soon as they are confirmed.</p></div><button type="button" class="btn btn-amber" data-act="tab" data-v="recyclers">${ic('truck')}Connect recyclers</button></div>`}
+ <div class="kpis"><div class="card kpi"><div class="eyebrow">Total kg verified this quarter</div><div class="v">${nf(D.kg)}</div><div class="s">of ${nf(p.target)} kg target</div></div>
+ <div class="card kpi"><div class="eyebrow">EPR credits claimable</div><div class="v">${D.credits.toLocaleString('en-IN')}</div><div class="s">1 credit = ${nf(p.kgPerCredit)} kg verified. Change in Settings.</div></div>
+ <div class="card kpi"><div class="eyebrow">Compliance vs target</div><div class="dialbox" style="margin-top:6px"><svg id="dial" class="dial ${last>=70?'ok':''}" viewBox="0 0 120 120" data-pct="${D.pct.toFixed(2)}" role="img" aria-label="Compliance ${Math.round(D.pct)} percent of target"><circle class="trk" cx="60" cy="60" r="48"/><circle class="arc" cx="60" cy="60" r="48" style="stroke-dasharray:${C*last/100} ${C}"/><text x="60" y="68" text-anchor="middle">${Math.round(last)}%</text></svg><div>${chip}<p class="s muted" style="font-size:.82rem;margin-top:8px">Target ${nf(p.target)} kg</p></div></div></div>
+ <div class="card kpi"><div class="eyebrow">Active generator sources</div><div class="v">${D.src}</div><div class="s">${D.kab} collectors · ${D.shops} repair shops</div></div></div>
+ <section class="card" style="margin-top:14px" aria-labelledby="mh"><div class="row sp wrap" style="margin-bottom:12px"><h2 class="h2" id="mh">Where verified handovers come from</h2><span class="muted" style="font-size:.85rem">Schematic map · heat shows verified kg</span></div>${mapBlock(D)}</section>
+ <section style="margin-top:14px" aria-labelledby="th"><div class="row sp wrap" style="margin-bottom:10px"><h2 class="h2" id="th">Recent manifests</h2><button type="button" class="btn btn-ghost btn-sm" data-act="tab" data-v="manifests">View all</button></div><div id="tblbox">${tableBox(false)}</div></section>`}
+
+function mapBlock(D){
+ const W=420,H=640,LAT0=19.42,LAT1=18.90,LNG0=72.76,LNG1=73.08,px=g=>(g-LNG0)/(LNG1-LNG0)*W,py=a=>(LAT0-a)/(LAT0-LAT1)*H;
+ const coast=[[19.43,72.742],[19.39,72.80],[19.33,72.815],[19.27,72.82],[19.2,72.815],[19.13,72.808],[19.07,72.815],[19.02,72.805],[18.98,72.80],[18.93,72.805],[18.89,72.815]];
+ const sea='M0,0L'+coast.map(c=>px(c[1]).toFixed(1)+','+py(c[0]).toFixed(1)).join('L')+`L0,${H}Z`;
+ const z={};D.ver.forEach(m=>{(z[m.zone]=z[m.zone]||{kg:0,n:0}).kg+=m.wv;z[m.zone].n++});
+ const zs=Object.entries(z).sort((a,b)=>b[1].kg-a[1].kg),mx=Math.max(1,...zs.map(x=>x[1].kg));
+ const heat=zs.map(([n,v])=>{const c=ZONES[n];return`<circle cx="${px(c[1]).toFixed(1)}" cy="${py(c[0]).toFixed(1)}" r="${(28+Math.sqrt(v.kg/mx)*58).toFixed(0)}" fill="url(#heat)"/>`}).join('');
+ const dots=D.ver.map(m=>`<circle cx="${px(m.lng).toFixed(1)}" cy="${py(m.lat).toFixed(1)}" r="2.8" fill="var(--primary)" stroke="var(--surface)" stroke-width="1"/>`).join('');
+ const lab=zs.map(([n,v])=>{const c=ZONES[n],x=px(c[1]),y=py(c[0]);return`<g><title>${n}: ${nf(v.kg)} kg in ${v.n} handovers</title><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="14" fill="var(--primary)" stroke="var(--surface)" stroke-width="2"/><text x="${x.toFixed(1)}" y="${(y+4).toFixed(1)}" text-anchor="middle" font-size="12" font-weight="700" fill="#fff" font-family="Inter,sans-serif">${v.n}</text><text x="${(x+19).toFixed(1)}" y="${(y+4).toFixed(1)}" font-size="12" font-weight="600" fill="var(--text)" font-family="Inter,sans-serif" paint-order="stroke" stroke="var(--land)" stroke-width="3">${n}</text></g>`}).join('');
+ const svg=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Map of verified handovers by zone. ${zs.map(([n,v])=>n+' '+nf(v.kg)+' kilograms').join('; ')||'No verified handovers yet'}"><defs><radialGradient id="heat"><stop offset="0%" stop-color="var(--amber-strong)" stop-opacity=".75"/><stop offset="55%" stop-color="var(--amber)" stop-opacity=".32"/><stop offset="100%" stop-color="var(--amber)" stop-opacity="0"/></radialGradient></defs>
+  <rect width="${W}" height="${H}" fill="var(--land)"/>${[1,2,3,4,5].map(i=>`<path d="M0 ${i*H/6}H${W}M${i*W/6} 0V${H}" stroke="var(--line)" stroke-width=".6" opacity=".6"/>`).join('')}<path d="${sea}" fill="var(--sea)"/><text x="16" y="${H/2}" font-size="13" font-style="italic" fill="var(--muted)" font-family="Inter,sans-serif" transform="rotate(-90 16 ${H/2})" text-anchor="middle">Arabian Sea</text>${heat}${dots}${lab}</svg>`;
+ return`<div class="maprow"><div class="mapbox">${svg}</div><div><h3 style="margin-bottom:6px;font-size:.95rem">Verified kg by zone</h3>${zs.length?zs.map(([n,v])=>`<div class="zrow"><span><b>${n}</b></span><div class="prog" aria-hidden="true"><i style="width:${v.kg/mx*100}%"></i></div><span class="num"><b>${nf(v.kg)}</b> kg</span></div>`).join(''):`<div class="empty"><p class="muted">No verified handovers yet. Connect a recycler, then confirm a handover from the kabadiwala or shop role.</p></div>`}<p class="muted" style="font-size:.8rem;margin-top:10px">Numbers on the map show verified handovers per zone. Dots are individual handover points.</p></div></div>`}
+
+/* manifests table */
+const SORTS={id:m=>m.id,gen:m=>(m.named?m.gname:m.gcode).toLowerCase(),cat:m=>m.cat,kg:m=>m.wv??m.wl,rec:m=>REC[m.rid].name,date:m=>m.pickupAt,status:m=>({verified:0,pending:1,flagged:2})[m.status]};
+const tf=()=>S.ui.tf||(S.ui.tf={q:'',status:'',cat:'',rid:'',key:'date',dir:-1,n:12,open:{}});
+function tblItems(full){
+ const f=tf();let r=cdata().all;
+ if(full){const q=f.q.trim().toLowerCase();if(q)r=r.filter(m=>(m.id+' '+m.gname+' '+m.gcode+' '+REC[m.rid].name+' '+m.zone).toLowerCase().includes(q));if(f.status)r=r.filter(m=>m.status===f.status);if(f.cat)r=r.filter(m=>m.cat===f.cat);if(f.rid)r=r.filter(m=>m.rid===f.rid)}
+ const g=SORTS[f.key]||SORTS.date;return[...r].sort((a,b)=>{const x=g(a),y=g(b);return(x<y?-1:x>y?1:0)*f.dir})}
+function tableBox(full){
+ const f=tf(),all=tblItems(full),rows=all.slice(0,full?f.n:8),conn=prof().connected.length;
+ const th=(k,l,r)=>`<th scope="col" aria-sort="${f.key===k?(f.dir>0?'ascending':'descending'):'none'}"><button type="button" data-act="sort" data-v="${k}" ${r?'style="justify-content:flex-end"':''}>${l}${f.key===k?ic('chev').replace('class="i "',`class="i" style="width:14px;height:14px;${f.dir>0?'transform:rotate(180deg)':''}"`):''}</button></th>`;
+ const body=rows.map(m=>{const o=!!f.open[m.id];return`<tr class="r ${o?'open':''}" data-act="row" data-id="${m.id}"><td class="mono" style="font-size:.82rem;white-space:nowrap">${m.id}${m.demo?' <span class="chip mute">Sample</span>':''}</td><td>${genLabel(m)}</td><td>${CAT[m.cat].en}</td><td class="n">${m.wv!=null?nf(m.wv):`<span class="muted" title="Logged, not yet verified">${nf(m.wl)}*</span>`}</td><td>${REC[m.rid].name}</td><td style="white-space:nowrap">${fmtD(m.pickupAt)}</td><td>${sChip(m.status)}</td><td class="xp"><button type="button" data-act="row" data-id="${m.id}" aria-expanded="${o}" aria-label="Details for ${m.id}">${ic('chev')}</button></td></tr>${o?detailRow(m):''}`}).join('');
+ const empty=!conn?`<div class="empty">${ic('truck')}<h3>No recyclers connected</h3><p class="muted">Manifests from your recycler network will list here.</p><button type="button" class="btn btn-primary" style="margin-top:12px" data-act="tab" data-v="recyclers">${t('connect')}</button></div>`:S.loading&&!all.length?`<div style="padding:16px;display:grid;gap:10px">${skel(3)}</div>`:`<div class="empty"><h3>No manifests match</h3><p class="muted">Change the filters or clear the search.</p></div>`;
+ return`<div class="tblwrap"><table class="tbl"><caption class="sr">Recent manifests. Select a column heading to sort.</caption><thead><tr>${th('id','Manifest ID')}${th('gen','Generator')}${th('cat','Category')}${th('kg','Weight (kg)',1)}${th('rec','Recycler')}${th('date','Date')}${th('status','Status')}<th class="xp"><span class="sr">Expand</span></th></tr></thead><tbody>${body}</tbody></table>${rows.length?'':empty}</div>
+ ${rows.length?`<p class="muted" style="font-size:.8rem;margin-top:8px">* Logged by the generator, not yet verified by the recycler. Showing ${rows.length} of ${all.length}.</p>`:''}${full&&all.length>rows.length?`<div style="text-align:center;margin-top:10px"><button type="button" class="btn btn-ghost" data-act="more">Show more</button></div>`:''}`}
+function detailRow(m){
+ const r=REC[m.rid],dl=m.wv!=null?m.wv-m.wl:null;
+ return`<tr class="detail"><td colspan="8"><div class="dgrid"><div>${m.photo?`<img loading="lazy" alt="Photograph of the waste" src="${m.photo}">`:`<div style="width:140px;height:110px;border-radius:10px;background:var(--line);display:grid;place-items:center;color:var(--muted);text-align:center;font-size:.75rem;padding:8px">${cic(m.cat).replace('<svg','<svg style="width:36px;height:36px;stroke:currentColor;fill:none;stroke-width:2"')}<span>No photo in this sample record</span></div>`}</div>
+ <dl><dt>Logged</dt><dd>${nf(m.wl)} kg</dd><dt>Verified</dt><dd>${m.wv!=null?nf(m.wv)+' kg'+(dl?` (${dl>=0?'+':''}${nf(dl)} kg, ${(dl/m.wl*100).toFixed(1)}%)`:''):'Pending'}</dd><dt>GPS</dt><dd class="mono">${m.lat.toFixed(5)}, ${m.lng.toFixed(5)}</dd><dt>Zone</dt><dd>${m.zone}</dd></dl>
+ <div><dl style="margin-bottom:10px"><dt>Pickup</dt><dd>${fmtDT(m.pickupAt)}</dd><dt>Recycler confirmed</dt><dd>${m.deliveredAt?fmtDT(m.deliveredAt):'Not yet'}</dd><dt>Licence</dt><dd class="mono">${r.lic}</dd>${m.note?`<dt>Note</dt><dd>${esc(m.note)}</dd>`:''}</dl><div class="row wrap"><button type="button" class="btn btn-primary btn-sm" data-act="cpcb" data-id="${m.id}">${ic('pdf')}CPCB export</button><button type="button" class="btn btn-ghost btn-sm" data-act="open-m" data-id="${m.id}">${t('viewm')}</button></div></div></div></td></tr>`}
+function cManifests(){
+ const f=tf();
+ return`<div class="row sp wrap" style="margin-bottom:14px"><div><h1 class="h1">Manifests</h1><p class="muted">Every handover from your connected recyclers.</p></div><button type="button" class="btn btn-amber" data-act="rep-open">${ic('pdf')}${t('genreport')}</button></div>
+ <div class="toolbar"><div><label class="sr" for="tf-q">Search manifests</label><input id="tf-q" type="search" placeholder="Search ID, generator, recycler or zone" data-bind="ui.tf.q" value="${esc(f.q)}"></div>
+ <div><label class="sr" for="tf-s">Status</label><select id="tf-s" data-bind="ui.tf.status"><option value="">All statuses</option>${['verified','pending','flagged'].map(s=>`<option value="${s}" ${f.status===s?'selected':''}>${t('status.'+s)}</option>`).join('')}</select></div>
+ <div><label class="sr" for="tf-c">Category</label><select id="tf-c" data-bind="ui.tf.cat"><option value="">All categories</option>${CATS.map(c=>`<option value="${c.id}" ${f.cat===c.id?'selected':''}>${c.en}</option>`).join('')}</select></div>
+ <div><label class="sr" for="tf-r">Recycler</label><select id="tf-r" data-bind="ui.tf.rid"><option value="">All recyclers</option>${Object.values(REC).map(r=>`<option value="${r.id}" ${f.rid===r.id?'selected':''}>${r.name}</option>`).join('')}</select></div></div><div id="tblbox">${tableBox(true)}</div>`}
+
+function cRecyclers(){
+ const p=prof(),Q=quarterOf(Date.now());
+ return`<div style="margin-bottom:14px"><h1 class="h1">Recyclers</h1><p class="muted">CPCB-licensed partners. Connect a recycler to bring its verified handovers into your portfolio.</p></div>
+ <div class="grid2">${Object.values(REC).map(r=>{const c=p.connected.includes(r.id),ms=getAll().filter(m=>m.rid===r.id&&m.pickupAt>=Q.start&&m.pickupAt<=Q.end),v=ms.filter(m=>m.status==='verified'),cf=ms.filter(m=>m.deliveredAt).sort((a,b)=>b.deliveredAt-a.deliveredAt)[0];
+  return`<article class="card"><div class="row sp" style="align-items:flex-start"><div><h3 style="font-size:1.15rem">${r.name}</h3><p class="mono muted" style="font-size:.82rem;margin-top:2px">${r.lic}</p><p class="muted" style="font-size:.88rem;margin-top:2px">${ic('pin')}${r.base} · ${r.vehicle}</p></div>${c?`<span class="chip ok">${ic('check')}Connected</span>`:`<span class="chip mute">Not connected</span>`}</div>
+  <div class="row" style="margin:14px 0;gap:20px"><div><div class="eyebrow">Verified kg</div><b class="num" style="font:800 1.4rem var(--font-head)">${nf(sum(v,m=>m.wv))}</b></div><div><div class="eyebrow">Pending</div><b class="num" style="font:800 1.4rem var(--font-head)">${ms.filter(m=>m.status==='pending').length}</b></div><div><div class="eyebrow">Flagged</div><b class="num" style="font:800 1.4rem var(--font-head)">${ms.filter(m=>m.status==='flagged').length}</b></div></div>
+  <p class="muted" style="font-size:.82rem;margin-bottom:12px">${cf?'Last confirmation '+fmtDT(cf.deliveredAt):'No confirmations this quarter'}</p>
+  <button type="button" class="btn ${c?'btn-ghost':'btn-primary'} btn-sm" data-act="rconn" data-id="${r.id}">${c?'Disconnect':ic('plus')+'Connect recycler'}</button></article>`}).join('')}</div>`}
+
+function cReports(){
+ const p=prof(),Q=quarterOf(Date.now());
+ return`<div class="row sp wrap" style="margin-bottom:14px"><div><h1 class="h1">Reports</h1><p class="muted">CPCB-ready PDF reports built from your verified manifests.</p></div><button type="button" class="btn btn-amber" data-act="rep-open">${ic('pdf')}${t('genreport')}</button></div>
+ <div class="card" style="margin-bottom:14px"><h3 style="margin-bottom:6px">${Q.label} is in progress</h3><p class="muted" style="margin-bottom:12px">Generate the current quarter, or pick any range, categories and recyclers in the report window.</p><button type="button" class="btn btn-primary btn-sm" data-act="rep-open">${ic('pdf')}Create ${Q.label} report</button></div>
+ <h2 class="h2" style="margin-bottom:10px">Generated reports</h2>${S.reports.length?`<div class="tblwrap"><table class="tbl" style="min-width:640px"><thead><tr><th><span style="padding:0 12px;display:block;min-height:44px;line-height:44px">Reference</span></th><th><span style="padding:0 12px">Period</span></th><th><span style="padding:0 12px">Manifests</span></th><th><span style="padding:0 12px">Verified kg</span></th><th></th></tr></thead><tbody>${S.reports.map((r,i)=>`<tr><td class="mono">${r.ref}<br><span class="muted" style="font-size:.75rem">${fmtDT(r.at)}</span></td><td>${r.from} to ${r.to}</td><td class="n">${r.count}</td><td class="n">${nf(r.kg)}</td><td><button type="button" class="btn btn-ghost btn-sm" data-act="rep-again" data-i="${i}">${ic('pdf')}Download again</button></td></tr>`).join('')}</tbody></table></div>`:`<div class="card empty">${ic('doc')}<h3>No reports yet</h3><p class="muted">Your first report takes one click.</p></div>`}`}
+
+function cSettings(){
+ const p=prof();
+ return`<div style="margin-bottom:14px"><h1 class="h1">Settings</h1></div><div class="grid2">
+ <div class="card"><h3 style="margin-bottom:10px">Company</h3><dl style="margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 14px"><dt class="muted">Company</dt><dd style="margin:0;font-weight:600">${esc(p.company)}</dd><dt class="muted">${p.idType}</dt><dd class="mono" style="margin:0">${esc(p.idNo)}</dd><dt class="muted">Email</dt><dd style="margin:0;overflow-wrap:anywhere">${esc(p.email)}</dd></dl></div>
+ <div class="card"><h3 style="margin-bottom:10px">Targets</h3><div class="field"><label for="st-t">Quarterly target (kg verified)</label><input id="st-t" type="number" min="1" step="10" data-bind="profiles.compliance.target" value="${p.target}"></div><div class="field" style="margin:0"><label for="st-k">Kg verified per EPR credit</label><input id="st-k" type="number" min=".1" step=".1" data-bind="profiles.compliance.kgPerCredit" value="${p.kgPerCredit}"></div></div>
+ <div class="card"><h3 style="margin-bottom:4px">Privacy and data</h3><div class="switch"><span><b>Anonymise all generators</b><br><span class="muted" style="font-size:.85rem">Hide names even where the generator agreed to be named.</span></span><button type="button" role="switch" aria-checked="${!!p.anonymize}" aria-label="Anonymise all generators" data-act="set-anon"></button></div>
+ <div class="switch"><span><b>Include sample data</b><br><span class="muted" style="font-size:.85rem">Example handovers so the dashboard is not empty. Turn off to see only real records.</span></span><button type="button" role="switch" aria-checked="${p.includeSample!==false}" aria-label="Include sample data" data-act="set-sample"></button></div></div>
+ <div class="card"><h3 style="margin-bottom:10px">This device</h3><p class="muted" style="margin-bottom:12px;font-size:.9rem">Clears profiles, saved manifests and reports stored in this browser. Records already in the shared store stay there.</p><button type="button" class="btn ${S.ui.cr?'btn-primary':'btn-ghost'} btn-sm" style="${S.ui.cr?'background:var(--bad)':''}" data-act="reset-all">${S.ui.cr?'Tap again to clear everything':'Reset this device'}</button></div></div>`}
+
+/* report modal */
+function repDefaults(){const p=prof();return{from:ymd(quarterOf(Date.now()).start),to:ymd(Date.now()),cats:Object.fromEntries(CATS.map(c=>[c.id,true])),rids:Object.fromEntries(p.connected.map(r=>[r,true])),verOnly:true}}
+function repRows(){
+ const p=prof(),o=S.ui.rep,a=parseYmd(o.from),b=parseYmd(o.to,1);
+ return getAll().filter(m=>p.connected.includes(m.rid)&&m.pickupAt>=a&&m.pickupAt<=b&&o.cats[m.cat]&&o.rids[m.rid]&&(!o.verOnly||m.status==='verified')).sort((x,y)=>x.pickupAt-y.pickupAt)}
+function repPreview(){const r=repRows(),v=r.filter(m=>m.status==='verified');return`${r.length} manifests · ${nf(sum(v,m=>m.wv))} kg verified${r.length?'':'. Nothing matches these filters.'}`}
+function reportModal(){
+ if(S.ui.modal!=='report')return'';
+ const p=prof(),o=S.ui.rep;
+ if(!p.connected.length)return`<div class="overlay dim center" data-act="rep-close" role="dialog" aria-modal="true" aria-label="Generate Compliance Report"><div class="modal" data-stop><h2 class="h1" data-first tabindex="-1">${t('genreport')}</h2><p class="muted" style="margin:8px 0 16px">Connect at least one recycler first. Reports are built from their verified manifests.</p><div class="row"><button type="button" class="btn btn-primary" data-act="rep-conn">${t('connect')}</button><button type="button" class="btn btn-ghost" data-act="rep-close">${t('cancel')}</button></div></div></div>`;
+ return`<div class="overlay dim center" data-act="rep-close" role="dialog" aria-modal="true" aria-label="Generate Compliance Report"><div class="modal" data-stop><div class="row sp" style="margin-bottom:14px"><h2 class="h1" data-first tabindex="-1">${t('genreport')}</h2><button type="button" class="btn btn-ghost btn-sm" data-act="rep-close" aria-label="Close">${ic('x')}</button></div>
+ <div class="row wrap" style="margin-bottom:10px"><button type="button" class="btn btn-ghost btn-sm" data-act="rep-q" data-v="cur">This quarter</button><button type="button" class="btn btn-ghost btn-sm" data-act="rep-q" data-v="prev">Last quarter</button></div>
+ <div class="filters" style="margin-bottom:14px"><div class="field" style="margin:0"><label for="r-f">From</label><input id="r-f" type="date" value="${o.from}" data-bind="ui.rep.from"></div><div class="field" style="margin:0"><label for="r-t">To</label><input id="r-t" type="date" value="${o.to}" data-bind="ui.rep.to"></div></div>
+ <fieldset style="border:0;padding:0;margin:0 0 12px"><legend class="lbl">Categories</legend><div class="filters">${CATS.map(c=>`<label class="check"><input type="checkbox" ${o.cats[c.id]?'checked':''} data-bind="ui.rep.cats.${c.id}">${c.en}</label>`).join('')}</div></fieldset>
+ <fieldset style="border:0;padding:0;margin:0 0 12px"><legend class="lbl">Recycler partners</legend>${p.connected.map(id=>`<label class="check"><input type="checkbox" ${o.rids[id]?'checked':''} data-bind="ui.rep.rids.${id}">${REC[id].name}</label>`).join('')}</fieldset>
+ <label class="check" style="margin-bottom:12px"><input type="checkbox" ${o.verOnly?'checked':''} data-bind="ui.rep.verOnly">Verified manifests only (recommended for CPCB upload)</label>
+ <p class="card flat" id="repprev" aria-live="polite" style="margin-bottom:14px;font-weight:600">${repPreview()}</p>
+ <div class="row wrap"><button type="button" class="btn btn-amber grow" data-act="rep-go">${ic('pdf')}Download PDF</button><button type="button" class="btn btn-ghost" data-act="rep-close">${t('cancel')}</button></div></div></div>`}
+
+/* ================= recycler desk ================= */
+function rdState(){return S.ui.rd||(S.ui.rd={rid:'r1',q:'',open:null,flag:false,reason:'Weight differs',kg:0})}
+function rdList(){
+ const d=rdState(),q=d.q.trim().toLowerCase(),all=getAll().filter(m=>m.rid===d.rid);
+ const pend=all.filter(m=>m.status==='pending'&&(!q||(m.id+' '+m.gname).toLowerCase().includes(q))).sort((a,b)=>a.pickupAt-b.pickupAt);
+ const done=all.filter(m=>m.status!=='pending').sort((a,b)=>b.deliveredAt-a.deliveredAt).slice(0,4);
+ const row=(m,act)=>`<button type="button" class="item" ${act?`data-act="rd-open" data-id="${m.id}"`:'disabled style="opacity:1;cursor:default"'}>${photoOrIcon(m)}<span class="grow"><span class="mono" style="font-weight:600;font-size:.85rem">${m.id}</span><br><span class="muted" style="font-size:.85rem">${CAT[m.cat].en} · ${nf(m.wl)} kg logged · ${fmtDT(m.pickupAt)}</span><br><span style="font-size:.85rem">${genLabel(m)}${m.demo?' <span class="chip mute">Sample</span>':''}</span></span>${act?`<span class="chip warn">${ic('clock')}Confirm</span>`:sChip(m.status)}</button>`;
+ return`<h3 style="margin:4px 0 10px">Waiting for confirmation (${pend.length})</h3><div class="stack" style="gap:10px">${pend.length?pend.map(m=>row(m,1)).join(''):'<div class="card flat empty"><p class="muted">Nothing waiting. New handovers for this recycler appear here.</p></div>'}</div>${done.length?`<h3 style="margin:20px 0 10px">Recently confirmed</h3><div class="stack" style="gap:10px">${done.map(m=>row(m,0)).join('')}</div>`:''}`}
+function viewRecycler(){
+ const d=rdState(),m=d.open&&getM(d.open);
+ let b;
+ if(m){
+  const r=REC[m.rid];
+  b=`<button type="button" class="btn btn-ghost btn-sm" style="margin-bottom:12px" data-act="rd-back">${ic('back')}${t('back')}</button><div class="card"><div class="row" style="align-items:flex-start">${photoOrIcon(m,'thumb')}<div class="grow"><div class="mono" style="font-weight:700">${m.id}</div><div>${CAT[m.cat].en} · ${genLabel(m)}</div><div class="muted" style="font-size:.85rem">${m.zone} · picked up ${fmtDT(m.pickupAt)}</div></div></div><hr><div class="row sp"><span class="muted">Logged by generator</span><b class="num">${nf(m.wl)} kg</b></div></div>
+  <div class="card" style="margin-top:12px"><h3 style="margin-bottom:4px">Weight at your scale</h3><p class="muted" style="font-size:.88rem;margin-bottom:12px">Enter the weight you measured. A difference over 10% flags the handover.</p>
+  <div class="row" style="justify-content:space-between;gap:6px"><button type="button" class="btn btn-ghost" style="min-width:56px" data-hold="-1" data-for="rd" aria-label="Minus 1 kilogram">−1</button><button type="button" class="btn btn-ghost" style="min-width:56px" data-hold="-0.1" data-for="rd" aria-label="Minus 0.1 kilogram">−0.1</button><div style="text-align:center;flex:1"><output id="rdkg" style="font:800 2.2rem var(--font-head)" aria-live="polite">${nf(d.kg)}</output><div class="muted">kg</div></div><button type="button" class="btn btn-ghost" style="min-width:56px" data-hold="0.1" data-for="rd" aria-label="Plus 0.1 kilogram">+0.1</button><button type="button" class="btn btn-ghost" style="min-width:56px" data-hold="1" data-for="rd" aria-label="Plus 1 kilogram">+1</button></div>
+  <p id="rdd" class="muted" style="text-align:center;margin:10px 0 14px">${rdDelta(m)}</p>
+  ${d.flag?`<div class="field"><span class="lbl">Reason</span><div class="seg" role="radiogroup" aria-label="Reason">${['Weight differs','Photo does not match','Wrong category'].map(x=>`<button type="button" role="radio" aria-checked="${d.reason===x}" data-act="rd-reason" data-v="${x}">${x}</button>`).join('')}</div></div><div class="row wrap"><button type="button" class="btn btn-primary grow" style="background:var(--bad)" data-act="rd-flag-ok">${ic('x')}Flag handover</button><button type="button" class="btn btn-ghost" data-act="rd-flag">${t('cancel')}</button></div>`
+  :`<div class="row wrap"><button type="button" class="btn btn-primary grow" data-act="rd-ok">${ic('check')}Confirm weight</button><button type="button" class="btn btn-ghost" data-act="rd-flag">${ic('alert')}Flag a problem</button></div>`}</div>
+  <p class="muted" style="font-size:.82rem;margin-top:10px">${esc(r.name)} · ${r.lic}</p>`}
+ else b=`<div class="field"><label for="rd-r">You are</label><select id="rd-r" data-bind="ui.rd.rid">${Object.values(REC).map(r=>`<option value="${r.id}" ${d.rid===r.id?'selected':''}>${r.name}</option>`).join('')}</select></div><div class="field"><label for="rd-q">Find a handover code</label><input id="rd-q" type="search" placeholder="AKR-…" data-bind="ui.rd.q" value="${esc(d.q)}"></div><div id="rdlist">${rdList()}</div>`;
+ return`<header class="appbar"><div class="gut"><div class="col"><div><div class="sub">Recycler desk</div><h1>Confirm handovers</h1></div>${langBar()}</div></div></header>`+col(`<main class="page">${b}</main>`)}
+function rdDelta(m){const d=rdState(),dl=d.kg-m.wl,p=Math.abs(dl)/m.wl*100;return`${dl>=0?'+':''}${nf(dl)} kg (${(dl/m.wl*100).toFixed(1)}%) against logged weight${p>10?' · will be flagged':''}`}
+function rdAdj(dv){const d=rdState(),m=getM(d.open);if(!m)return;d.kg=Math.max(.1,Math.round((d.kg+dv)*10)/10);const a=$('#rdkg'),b=$('#rdd');if(a)a.textContent=nf(d.kg);if(b)b.textContent=rdDelta(m)}
+
+/* ================= actions ================= */
+function setPath(path,val){const k=path.split('.');let o=S;for(let i=0;i<k.length-1;i++){if(o[k[i]]==null||typeof o[k[i]]!=='object')o[k[i]]={};o=o[k[i]]}o[k[k.length-1]]=val}
+function tblRefresh(){const b=$('#tblbox');if(b)b.innerHTML=tableBox(S.tab.compliance==='manifests')}
+function copyText(txt,msg){
+ const fallback=()=>toast(msg?msg+' ':'Copy this: '+txt);
+ try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(()=>toast(msg||'Copied.'),fallback);return}}catch(e){}
+ fallback()}
+function addSampleHistory(){
+ const p=prof(),now=Date.now(),cs=p.role==='shop'?['board','phone','laptop','board']:['phone','wire','mixed','battery','phone','laptop'];
+ for(let i=1;i<=6;i++){
+  const cat=cs[i%cs.length],wl=Math.round((4+Math.random()*(p.role==='shop'?10:22))*2)/2,when=sod(now-i*DAY*(p.role==='shop'?4:1))+10*36e5,wv=Math.round(wl*(.95+Math.random()*.05)*10)/10;
+  const z=p.zone,c=ZONES[z],rid=ZREC[z];
+  const m={id:mkId(),gid:p.id,gname:p.role==='shop'?p.shopName:(p.name||'Kabadiwala ••'+p.phone.slice(-4)),gcode:'G-'+p.id.slice(-4).toUpperCase(),role:p.role,named:p.role==='shop'?p.named!==false:false,zone:z,cat,wl,wv,paid:Math.round(wv*CAT[cat].rate),rid,pickupAt:when,deliveredAt:when+3*36e5,status:'verified',lat:+(c[0]+(Math.random()-.5)*.008).toFixed(5),lng:+(c[1]+(Math.random()-.5)*.008).toFixed(5),photo:null,photoSample:false,note:'',demo:true,u:Date.now()};
+  S.notified[m.id+':verified']=1;putM(m)}
+ render()}
+
+const ACT={
+ 'about-open'(){S.ui.about=true;S.ui.fo=true;render()},
+ 'about-close'(el,e){if(el.classList.contains('overlay')&&e.target.closest('[data-stop]'))return;S.ui.about=false;render()},
+ lang(el){S.lang=el.dataset.v;persist();document.documentElement.lang=S.lang;render()},
+ offline(){S.offline=!S.offline;S.ui.wasOffline=true;if(!S.offline)trySync();render()},
+ home(){S.view='select';S.pub=null;S.ui.rd=null;S.ob=null;if(location.hash){try{history.replaceState(null,'',location.pathname+location.search)}catch(e){location.hash=''}}render();scrollTo(0,0)},
+ recdesk(){S.view='recycler';S.pub=null;S.ui.rd=null;render();scrollTo(0,0)},
+ pick(el){const r=el.dataset.v;if(S.profiles[r]){S.role=r;S.view='app';persist()}else{S.ob={role:r,step:0,d:{zone:r==='shop'?'Grant Road':'Dharavi'}};S.view='onboard';S.ui.fo=true}render();scrollTo(0,0)},
+ 'ob-next':obNext,
+ 'ob-back'(){if(S.ob.step>0){S.ob.step--;render()}else{S.view='select';S.ob=null;render()}},
+ 'ob-sample'(){S.ob.d.photo=samplePhoto();render()},
+ 'ob-zone'(el){S.ob.d.zone=el.dataset.v;render()},
+ tab(el){S.tab[S.role]=el.dataset.v;S.ui.sheet=false;render();scrollTo(0,0)},
+ support(){S.ui.sheet=true;S.ui.fo=true;render()},
+ 'sheet-close'(el,e){if(el.classList.contains('overlay')&&e.target.closest('[data-stop]'))return;S.ui.sheet=false;render()},
+ 'copy-no'(){copyText(SUPPORT_NO,'Number copied.')},
+ /* kabadiwala */
+ log(){S.ui.log={step:1,photo:null,cat:null,kg:5,sample:false};S.ui.fo=true;render()},
+ 'log-back'(){const L=S.ui.log;if(L.step>1)L.step--;else S.ui.log=null;render()},
+ 'log-sample'(){const L=S.ui.log;L.photo=samplePhoto();L.sample=true;L.step=2;render()},
+ cat(el){const L=S.ui.log;L.cat=el.dataset.v;L.step=3;render()},
+ 'log-ok'(){const L=S.ui.log;if(isOffline())S.ui.wasOffline=true;const m=newManifest({cat:L.cat,wl:L.kg,photo:L.photo,photoSample:L.sample});S.ui.log=null;S.ui.success=m.id;S.ui.fo=true;render()},
+ 'success-done'(){S.ui.success=null;S.tab.kabadi='home';render();scrollTo(0,0)},
+ 'sample-load'(){addSampleHistory()},
+ 'open-m'(el){const id=el.dataset.id;go(()=>{S.ui.success=null;S.ui.manifest=id;S.ui.fo=true})},
+ 'm-close'(){go(()=>{S.ui.manifest=null})},
+ 'm-pdf'(el){const m=getM(el.dataset.id);if(m)pdfManifest(m)},
+ 'm-copy'(el){copyText(mLink(el.dataset.id),'Link copied.')},
+ 'cpcb'(el){const m=getM(el.dataset.id);if(m)pdfManifest(m,true)},
+ 'pub-close'(){S.pub=null;try{history.replaceState(null,'',location.pathname+location.search)}catch(e){location.hash=''}render()},
+ 'aad-open'(){S.ui.aad=true;render()},
+ 'aad-save'(){const v=(S.ui.aadv||'').replace(/\s/g,'');if(!/^\d{12}$/.test(v)){const e=$('#err');if(e)e.textContent='Enter all 12 digits.';return}prof().aadhaarLast4=v.slice(-4);S.ui.aad=false;S.ui.aadv='';persist();toast('Aadhaar linked. Bank transfer payments are unlocked.');render()},
+ /* shop */
+ 'pu-open'(){S.ui.pu={cat:'board',kg:10,date:ymd(Date.now()+DAY),notes:'',photo:null};S.ui.fo=true;render()},
+ 'pu-cat'(el){S.ui.pu.cat=el.dataset.v;render()},
+ 'pu-go':puGo,
+ 'pu-close'(){S.ui.pu=null;render()},
+ 'hist-pdf'(){pdfHistory(prof(),histRows(),histDesc())},
+ 'badge-share'(){const p=prof();copyText(`${p.shopName} is a Green Shop: e-waste handovers verified through Akrit.`,'Share text copied.');badgePng()},
+ 'gst-save'(){const v=(S.ui.gst||'').toUpperCase().trim(),e=$('#err');if(!/^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/.test(v)){if(e)e.textContent='That GST number does not look right. It has 15 characters.';return}prof().gst=v;S.ui.gst='';persist();toast('GST number added.');render()},
+ named(){const p=prof();p.named=p.named===false;persist();render()},
+ /* compliance */
+ sort(el){const f=tf(),k=el.dataset.v;if(f.key===k)f.dir*=-1;else{f.key=k;f.dir=k==='date'?-1:1}tblRefresh()},
+ row(el,e){if(e.target.closest('button')&&e.target!==el&&!e.target.closest('[data-act="row"]'))return;const f=tf(),id=el.dataset.id;f.open[id]=!f.open[id];tblRefresh()},
+ more(){tf().n+=12;tblRefresh()},
+ 'rep-open'(){S.ui.rep=repDefaults();S.ui.modal='report';S.ui.fo=true;render()},
+ 'rep-close'(el,e){if(el.classList.contains('overlay')&&e.target.closest('[data-stop]'))return;S.ui.modal=null;render()},
+ 'rep-conn'(){S.ui.modal=null;S.tab.compliance='recyclers';render()},
+ 'rep-q'(el){const Q=quarterOf(Date.now()),q=el.dataset.v==='cur'?Q:quarterOf(Q.start-DAY);S.ui.rep.from=ymd(q.start);S.ui.rep.to=ymd(Math.min(q.end,Date.now()));render()},
+ async 'rep-go'(el){const o=S.ui.rep,rows=repRows();if(!rows.length){toast('Nothing matches these filters.');return}
+  el.disabled=true;const p=prof(),res=await pdfReport(p,o,rows);el.disabled=false;
+  if(res&&res.ok){S.reports.unshift({ref:res.ref,at:Date.now(),from:o.from,to:o.to,kg:res.kg,count:rows.length,o:JSON.parse(JSON.stringify(o))});persist();push(`Your ${quarterOf(parseYmd(o.to)).label} EPR report is ready to download. ${nf(res.kg)}kg verified in this report.`);S.ui.modal=null;render()}},
+ 'rep-again'(el){const r=S.reports[+el.dataset.i];if(!r)return;S.ui.rep=r.o;const rows=repRows();pdfReport(prof(),r.o,rows)},
+ rconn(el){const p=prof(),id=el.dataset.id,i=p.connected.indexOf(id);if(i<0){p.connected.push(id);toast(REC[id].name+' connected. Its verified handovers now appear in your portfolio.')}else p.connected.splice(i,1);persist();render()},
+ 'set-anon'(){const p=prof();p.anonymize=!p.anonymize;persist();render()},
+ 'set-sample'(){const p=prof();p.includeSample=p.includeSample===false;bump();persist();render()},
+ 'reset-all'(){if(!S.ui.cr){S.ui.cr=true;render();return}try{localStorage.removeItem(LS);localStorage.removeItem('akrit.cache')}catch(e){}
+  Object.assign(S,{profiles:{},role:null,reports:[],queue:[],notified:{},local:{m:{},p:{}},view:'select',ui:{}});bump();render()},
+ /* recycler */
+ 'rd-open'(el){const d=rdState(),m=getM(el.dataset.id);d.open=el.dataset.id;d.kg=m?m.wl:0;d.flag=false;render();scrollTo(0,0)},
+ 'rd-back'(){rdState().open=null;render()},
+ 'rd-flag'(){const d=rdState();d.flag=!d.flag;render()},
+ 'rd-reason'(el){rdState().reason=el.dataset.v;render()},
+ 'rd-ok'(){const d=rdState(),m=getM(d.open);if(!m)return;const n=verifyM(m,d.kg);d.open=null;toast(n.status==='verified'?`Handover ${n.id} confirmed at ${nf(n.wv)} kg.`:`Handover ${n.id} flagged: ${n.note}.`);render();scrollTo(0,0)},
+ 'rd-flag-ok'(){const d=rdState(),m=getM(d.open);if(!m)return;const n=verifyM(m,d.kg,d.reason);d.open=null;toast(`Handover ${n.id} flagged: ${d.reason}.`);render();scrollTo(0,0)}
+};
+app.addEventListener('click',e=>{
+ const h=e.target.closest('[data-hold]');
+ if(h){const fn=h.dataset.for==='rd'?rdAdj:logAdj;if(h.dataset.did){delete h.dataset.did;return}fn(+h.dataset.hold);return}
+ const el=e.target.closest('[data-act]');if(!el)return;
+ const f=ACT[el.dataset.act];if(f)f(el,e)});
+let holdT=null,holdI=null;
+const stopHold=()=>{clearTimeout(holdT);clearInterval(holdI);holdT=holdI=null};
+app.addEventListener('pointerdown',e=>{const b=e.target.closest('[data-hold]');if(!b)return;const dv=+b.dataset.hold,fn=b.dataset.for==='rd'?rdAdj:logAdj;fn(dv);b.dataset.did='1';holdT=setTimeout(()=>{holdI=setInterval(()=>fn(dv),110)},450)});
+['pointerup','pointercancel','pointerleave'].forEach(ev=>app.addEventListener(ev,stopHold,true));document.addEventListener('pointerup',stopHold);
+app.addEventListener('input',e=>{
+ const el=e.target,p=el.dataset&&el.dataset.bind;if(!p)return;
+ let v=el.type==='checkbox'?el.checked:el.type==='range'?+el.value:el.type==='number'?(el.value===''?NaN:+el.value):el.value;
+ if(el.type==='number'&&isNaN(v))return;
+ setPath(p,v);
+ if(el.dataset.out){const o=$(el.dataset.out);if(o)o.textContent=el.value}
+ if(p.startsWith('ui.hf')){const b=$('#hbox');if(b)b.innerHTML=histInner()}
+ else if(p.startsWith('ui.tf')){tf().n=12;tblRefresh()}
+ else if(p.startsWith('ui.rep')){const b=$('#repprev');if(b)b.textContent=repPreview()}
+ else if(p==='ui.rd.q'){const b=$('#rdlist');if(b)b.innerHTML=rdList()}
+ else if(p==='ui.rd.rid'){rdState().q='';render()}
+ else if(p.startsWith('profiles.')){persist();bump()}});
+app.addEventListener('change',async e=>{
+ const el=e.target;if(!el.matches||!el.matches('input[data-photo]'))return;
+ const f=el.files&&el.files[0];if(!f)return;
+ try{const url=await readImg(f);const path=el.dataset.photo;setPath(path+'.photo',url);setPath(path+'.sample',false);if(path==='ui.log')S.ui.log.step=2;render()}
+ catch(x){toast('That photo could not be read. Try another one.')}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeTop()});
+
+/* ================= boot ================= */
+function readHash(){const m=(location.hash||'').match(/^#m-(AKR-[A-Za-z0-9-]+)$/);S.pub=m?m[1]:null}
+window.addEventListener('hashchange',()=>{readHash();render()});
+window.addEventListener('online',()=>{trySync();render()});
+window.addEventListener('offline',()=>{S.ui.wasOffline=true;render()});
+restore();cacheLoad();SAMPLE=buildSample();
+document.documentElement.lang=S.lang;
+S.view=(S.role&&S.profiles[S.role])?'app':'select';
+readHash();render();initDb();
+setTimeout(()=>{checkNotifs()},600);
+
+</script>
+</body>
+</html>
