@@ -9,9 +9,14 @@ Desktop.ini
 *.swp
 *.swo
 
-# Python
-__pycache__/
-*.pyc
+# Node
+node_modules/
+npm-debug.log*
+
+# Uploads & Temp Data
+uploads/
+*.tmp
+
 
 # Antigravity/Gemini
 .gemini/

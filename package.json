@@ -1,0 +1,28 @@
+{
+  "name": "projectakrit",
+  "version": "1.0.0",
+  "description": "> **\"Think of Akrit like Zomato, but for e-waste.**   > Zomato does not cook food or own restaurants — it owns the data, the tracking, and the trust. Akrit does not recycle e-waste or own trucks. It owns the digital manifest, the verified supply chain, and the connection between the informal waste workers who aggregate waste and the authorized recyclers registered to process it.\"",
+  "main": "b_core.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "assemble": "python assemble.py"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gauravv00/projectakrit.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/gauravv00/projectakrit/issues"
+  },
+  "homepage": "https://github.com/gauravv00/projectakrit#readme",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.3.0",
+    "multer": "^2.5.0"
+  }
+}

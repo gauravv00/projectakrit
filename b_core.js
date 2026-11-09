@@ -194,22 +194,109 @@ function verifyM(m,wv,flagNote){
  else{n.status='verified';n.paid=Math.round(wv*CAT[m.cat].rate);n.note=''}
  putM(n);return n}
 
-/* ================= sync (shared store) ================= */
+/* ================= sync (shared store & backend API) ================= */
 let syncing=false;
+const API_URL = (typeof window !== 'undefined' && window.location && window.location.origin) ? window.location.origin : 'http://localhost:3000';
+
 async function trySync(){
- if(syncing||isOffline()||!S.db||!S.queue.length)return;
+ if(syncing||isOffline()||!S.queue.length)return;
  syncing=true;let n=0;
- try{for(const q of [...S.queue]){
+ try{
+  for(const q of [...S.queue]){
    const rec=(q.k==='m'?S.local.m:S.local.p)[q.id];
-   if(rec)await S.db.doc((q.k==='m'?'manifests/':'pickups/')+q.id).set(rec);
-   S.queue=S.queue.filter(x=>!(x.k===q.k&&x.id===q.id));n++}
-  S.dbState='live';persist();
-  if(S.ui.wasOffline&&n){S.ui.wasOffline=false;const p=prof();if(p&&p.role==='kabadi')push(S.lang==='en'?`Back online. ${n} handover${n>1?'s are':' is'} now registered.`:'नेटवर्क वापस आ गया। आपके हैंडओवर दर्ज हो गए।')}
- }catch(e){S.dbState=(e&&e.code==='invalid_argument')?'readonly':'error'}
- finally{syncing=false;softRender()}
+   if(!rec)continue;
+   if(S.db){
+    await S.db.doc((q.k==='m'?'manifests/':'pickups/')+q.id).set(rec);
+   } else {
+    const ep = q.k==='m' ? '/api/manifests' : '/api/pickups';
+    const isUpdate = q.k==='m' && rec.status !== 'pending';
+    let url = API_URL + ep;
+    let method = 'POST';
+    if(isUpdate){
+      url = API_URL + '/api/manifests/' + encodeURIComponent(rec.id) + '/verify';
+      method = 'PATCH';
+    }
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(rec)
+    });
+    if(!res.ok) throw new Error('API sync failed: ' + res.status);
+   }
+   S.queue=S.queue.filter(x=>!(x.k===q.k&&x.id===q.id));
+   n++;
+  }
+  S.dbState='live';
+  persist();
+  if(S.ui.wasOffline&&n){
+    S.ui.wasOffline=false;
+    const p=prof();
+    if(p&&p.role==='kabadi')push(S.lang==='en'?`Back online. ${n} handover${n>1?'s are':' is'} now registered.`:'नेटवर्क वापस आ गया। आपके हैंडओवर दर्ज हो गए।');
+  }
+ } catch(e){
+  if(!isOffline()) S.dbState='local';
+ } finally {
+  syncing=false;
+  softRender();
+ }
 }
+
 async function initDb(){
- setTimeout(()=>{if(S.loading){S.loading=false;softRender()}},1400);
+ setTimeout(()=>{if(S.loading){S.loading=false;softRender()}},1200);
+ try {
+  const manifestsRes = await fetch(API_URL + '/api/manifests');
+  if(manifestsRes.ok) {
+   const data = await manifestsRes.json();
+   if(data.manifests && Array.isArray(data.manifests)) {
+    const o = {};
+    data.manifests.forEach(m => { o[m.id] = m; });
+    S.remote.m = o;
+   }
+   try {
+     const pickupsRes = await fetch(API_URL + '/api/pickups');
+     if(pickupsRes.ok) {
+       const pData = await pickupsRes.json();
+       if(pData.pickups && Array.isArray(pData.pickups)) {
+         const op = {};
+         pData.pickups.forEach(p => { op[p.id] = p; });
+         S.remote.p = op;
+       }
+     }
+   } catch(pe) {}
+
+   S.dbState = 'live';
+   S.loading = false;
+   bump();
+   checkNotifs();
+   softRender();
+   trySync();
+
+   if(typeof EventSource !== 'undefined') {
+    try {
+      const evtSource = new EventSource(API_URL + '/api/events');
+      evtSource.onmessage = e => {
+        try {
+          const payload = JSON.parse(e.data);
+          if(payload.type === 'insert' || payload.type === 'update') {
+            if(payload.collection === 'manifests' && payload.item) {
+              S.remote.m[payload.item.id] = payload.item;
+              bump();
+              checkNotifs();
+              softRender();
+            } else if(payload.collection === 'pickups' && payload.item) {
+              S.remote.p[payload.item.id] = payload.item;
+              bump();
+              softRender();
+            }
+          }
+        } catch(err) {}
+      };
+    } catch(se) {}
+   }
+   return;
+  }
+ } catch(apiErr) {}
+
  try{
   const cl=window.claude;if(!cl||!cl.use){S.dbState='local';return}
   const db=await cl.use('db');if(!db){S.dbState='local';softRender();return}
@@ -220,6 +307,7 @@ async function initDb(){
   db.collection('pickups').onSnapshot(sn=>{const o={};sn.docs.forEach(d=>{o[d.id]=d.data()});S.remote.p=o;got()},bad);
  }catch(e){S.dbState='local'}
 }
+
 const _caps={};
 function cap(name){return _caps[name]||(_caps[name]=(async()=>{try{return window.claude&&window.claude.use?await window.claude.use(name):null}catch(e){return null}})())}
 async function saveFile(name,data){
