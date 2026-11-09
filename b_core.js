@@ -128,10 +128,15 @@ function quarterOf(ts){const d=new Date(ts),m=d.getMonth(),y=d.getFullYear();con
 
 /* ================= state ================= */
 const LS='akrit.v1';
-const S={view:'select',role:null,profiles:{},lang:'en',offline:false,loading:true,local:{m:{},p:{}},remote:{m:{},p:{}},queue:[],notified:{},reports:[],
+const DEFAULT_PROFILES={
+ kabadi:{id:'u_sunita',role:'kabadi',phone:'9820145892',name:'Sunita Kamble',zone:'Dharavi',aadhaarLast4:'4821',named:true},
+ shop:{id:'u_lamington',role:'shop',phone:'9819234510',shopName:'Lamington Mobile Care',gst:'27AABCU9603R1ZM',zone:'Grant Road',badgeSeen:true,named:true},
+ compliance:{id:'u_compliance',role:'compliance',email:'rohan.d@samsung.com',name:'Rohan Deshmukh',company:'Samsung India Electronics Pvt Ltd',idType:'CIN',idNo:'U32109DL1995PTC070624',connected:['r1','r2','r3'],target:1200,kgPerCredit:1,anonymize:false,includeSample:true}
+};
+const S={view:'select',role:null,profiles:{...DEFAULT_PROFILES},lang:'en',offline:false,loading:true,local:{m:{},p:{}},remote:{m:{},p:{}},queue:[],notified:{},reports:[],
  tab:{kabadi:'home',shop:'home',compliance:'overview'},ob:null,ui:{},db:null,dbState:'connecting',rev:0,pub:null};
 function persist(){try{localStorage.setItem(LS,JSON.stringify({profiles:S.profiles,role:S.role,lang:S.lang,local:S.local,queue:S.queue,notified:S.notified,reports:S.reports}))}catch(e){}}
-function restore(){try{const j=JSON.parse(localStorage.getItem(LS)||'null');if(j){S.profiles=j.profiles||{};S.role=j.role||null;S.lang=j.lang||'en';S.local=j.local||{m:{},p:{}};S.local.m=S.local.m||{};S.local.p=S.local.p||{};S.queue=j.queue||[];S.notified=j.notified||{};S.reports=j.reports||[]}}catch(e){}}
+function restore(){try{const j=JSON.parse(localStorage.getItem(LS)||'null');if(j){S.profiles=(j.profiles&&Object.keys(j.profiles).length)?j.profiles:{...DEFAULT_PROFILES};S.role=j.role||null;S.lang=j.lang||'en';S.local=j.local||{m:{},p:{}};S.local.m=S.local.m||{};S.local.p=S.local.p||{};S.queue=j.queue||[];S.notified=j.notified||{};S.reports=j.reports||[]}}catch(e){}}
 const prof=()=>S.role?S.profiles[S.role]:null;
 const isOffline=()=>S.offline||(typeof navigator!=='undefined'&&navigator.onLine===false);
 const bump=()=>{S.rev++};

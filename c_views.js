@@ -17,30 +17,44 @@ function cacheLoad(){try{const a=JSON.parse(localStorage.getItem('akrit.cache')|
 const relDay=ts=>{const d=Math.round((sod(ts)-sod(Date.now()))/DAY);return d===0?'today':d===1?'tomorrow':new Date(ts).toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'short'})};
 const dbLabel=()=>({live:['Shared data','dotlive'],local:['This device only','dotlive off'],readonly:['View only for you','dotlive off'],error:['Sync problem','dotlive off'],connecting:['Connecting','dotlive off']}[S.dbState]||['','dotlive off']);
 
-/* ================= shell ================= */
+/* ================= unified app header ================= */
+function roleMeta(){
+ if(S.view==='recycler') return { name: 'Recycler Desk', icon: 'truck' };
+ if(S.role==='kabadi') return { name: prof()?.name || 'Kabadiwala', icon: 'truck' };
+ if(S.role==='shop') return { name: prof()?.shopName || 'Repair Shop', icon: 'wrench' };
+ if(S.role==='compliance') return { name: prof()?.company || 'Compliance', icon: 'building' };
+ return { name: 'Select Persona', icon: 'user' };
+}
+
 function demobar(){
  const [lab,cls]=dbLabel();
+ const rMeta = roleMeta();
  const isPwaReady = typeof window !== 'undefined' && !!window.deferredPwaPrompt;
- return`<header class="demobar"><div class="gut"><div class="col">
-  <span class="brandmark" style="font-size:1.15rem;color:var(--primary-ink);margin-right:2px">
-    <span style="width:28px;height:28px;border-radius:8px;background:var(--primary);color:#fff;display:grid;place-items:center">${ic('mark')}</span>
-    Akrit
-  </span>
-  <select class="role-select" data-act="role-switch" aria-label="Switch Persona">
-    <option value="" ${S.view==='select'?'selected':''}>Select Persona...</option>
-    <option value="kabadi" ${(S.view==='app'&&S.role==='kabadi')?'selected':''}>Kabadiwala (Street Collector)</option>
-    <option value="shop" ${(S.view==='app'&&S.role==='shop')?'selected':''}>Repair Shop (Green Shop)</option>
-    <option value="recdesk" ${S.view==='recycler'?'selected':''}>Recycler Desk (Scale Weigher)</option>
-    <option value="compliance" ${(S.view==='app'&&S.role==='compliance')?'selected':''}>Compliance Officer (Brand EPR)</option>
-  </select>
-  <button type="button" data-act="about-open" title="Project Vision & Model">${ic('shield')}Vision</button>
-  <button type="button" data-act="offline" aria-pressed="${S.offline}">${ic('wifioff')}${S.offline?'Offline':'Online'}</button>
-  ${isPwaReady?`<button type="button" style="background:var(--amber);color:var(--on-amber);border-color:var(--amber-strong);font-weight:700" data-act="pwa-install">${ic('award')}Install App</button>`:''}
-  <span class="tag" style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:.78rem"><span class="${cls}"></span>${lab}</span>
+ return`<header class="app-header"><div class="gut"><div class="col wide nav-inner">
+  <button type="button" class="nav-brand" data-act="home" title="Go to Akrit Persona Hub">
+    <span class="brand-icon">${ic('mark')}</span>
+    <span class="brand-text">Akrit <small>E-Waste</small></span>
+  </button>
+  <button type="button" class="role-pill" data-act="role-menu" title="Click to switch persona">
+    ${ic(rMeta.icon)}<span>${esc(rMeta.name)}</span>${ic('chev')}
+  </button>
+  <div class="nav-actions">
+    ${langBar()}
+    <button type="button" class="nav-btn" data-act="about-open" title="Project Vision & Model">${ic('shield')}<span class="hide-sm">Vision</span></button>
+    <button type="button" class="nav-btn ${S.offline?'off':''}" data-act="offline" title="Toggle Offline Simulation">
+      ${ic('wifioff')}<span class="hide-sm">${S.offline?'Offline':'Online'}</span>
+    </button>
+    <button type="button" class="nav-btn hide-sm" data-act="toggle-frame" title="Toggle Phone / Wide View">
+      ${ic(S.ui.wideMode?'laptop':'phone')}<span class="hide-sm">${S.ui.wideMode?'Phone View':'Wide'}</span>
+    </button>
+    <span class="status-pill ${cls}" title="${lab}">
+      <span class="status-dot"></span><span class="hide-sm">${lab}</span>
+    </span>
+  </div>
  </div></div></header>`}
 
 function render(){
- let h=demobar();
+ let h='';
  if(S.pub)h+=viewPublic();
  else if(S.view==='select')h+=viewSelect();
  else if(S.view==='onboard')h+=viewOnboard();
@@ -48,9 +62,14 @@ function render(){
  else if(S.role==='kabadi')h+=viewKabadi();
  else if(S.role==='shop')h+=viewShop();
  else if(S.role==='compliance')h+=viewCompliance();
- h+=overlays();
- app.innerHTML=h;after();
+
+ if(typeof document !== 'undefined' && document.body){
+   document.body.classList.toggle('wide-mode', !!(S.ui && S.ui.wideMode));
+ }
+ app.innerHTML = demobar() + `<div class="viewport-scroll">${h}</div>` + overlays();
+ after();
 }
+
 function softRender(){
  const a=document.activeElement;
  if(a&&/^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName)&&a.type!=='button'&&app.contains(a)){S.ui.pending=true;return}
@@ -75,40 +94,36 @@ function animateDial(){
 
 /* ================= role select & onboarding ================= */
 function viewSelect(){
- const defs=[
-  ['kabadi','k','truck','FIRST-MILE COLLECTOR','Earn ~38% above middleman rates with instant UPI and verified digital manifests.'],
-  ['shop','s','wrench','ELECTRONIC REPAIR SHOP','Monetize component scrap, schedule doorstep tempo pickups, and display your Green Shop certificate.'],
-  ['compliance','c','building','BRAND COMPLIANCE OFFICER','Track CPCB 70% annual targets, audit verified manifests, and download CPCB EPR portal reports.']
+ const roles = [
+  { id: 'kabadi', tag: 'FIRST-MILE COLLECTOR', title: 'Kabadiwala', icon: 'truck', desc: 'Log street scrap, get fair rates (+38% vs middleman), instant UPI payout & Digital Manifest.', color: 'k' },
+  { id: 'shop', tag: 'REPAIR SHOP OWNER', title: 'Electronic Repair Shop', icon: 'wrench', desc: 'Schedule doorstep tempo pickups for PCB scrap & earn your verifiable Green Shop badge.', color: 's' },
+  { id: 'recdesk', tag: 'RECYCLING FACILITY', title: 'Recycler Weigh Scale', icon: 'truck', desc: 'Simulate industrial scale weighing, verify weight tolerance (<10%), and approve instant UPI payouts.', color: 'r' },
+  { id: 'compliance', tag: 'BRAND COMPLIANCE', title: 'Brand EPR Portfolio', icon: 'building', desc: 'Track 70% CPCB recycling targets, audit verified manifests & generate 1-click CPCB reports.', color: 'c' }
  ];
- const cards=defs.map(([r,c,i,tag,sub])=>{
-  const p=S.profiles[r];
-  return`<button type="button" class="rolecard ${c}" data-act="pick" data-v="${r}">
-   <span class="ico">${ic(i)}</span>
-   <span class="grow">
-    <span class="badge-tag">${tag}</span>
-    <b>${t('role.'+c)}</b>
-    <span class="d" style="font-size:.88rem;color:var(--muted);display:block;margin-top:2px">${sub}</span>
-   </span>
-   ${p?`<span class="cont chip info">${t('resume')}</span>`:''}
-  </button>`;
- }).join('');
 
- return col(`<div class="page">
-  <div class="row sp" style="margin-bottom:8px">
-   <span class="brandmark" style="color:var(--primary-ink)"><span style="width:40px;height:40px;border-radius:12px;background:var(--primary);color:#fff;display:grid;place-items:center">${ic('mark')}</span>Akrit</span>
-   ${langBar(true)}
+ return col(`<div class="page" style="padding-top:10px">
+  <div class="card flat" style="background:var(--primary-soft);border-left:4px solid var(--primary);margin-bottom:18px;padding:16px">
+   <div class="eyebrow" style="color:var(--primary-ink);font-weight:800;margin-bottom:4px">Zomato for India's E-Waste</div>
+   <h2 style="font-size:1.15rem;margin-bottom:4px">Project Akrit Prototype</h2>
+   <p class="muted" style="font-size:0.86rem;line-height:1.4">Select any of the 4 interactive personas below to experience the closed-loop e-waste supply chain:</p>
   </div>
-  <div class="card flat" style="background:var(--primary-soft);border-left:4px solid var(--primary);margin:16px 0 20px;padding:14px 16px">
-   <div style="font-weight:700;color:var(--primary-ink);font-size:.92rem;margin-bottom:2px">Zomato for India's E-Waste</div>
-   <p class="muted" style="font-size:.85rem">Connecting informal collectors & repair shops to MPCB-authorized recyclers through verifiable digital manifests.</p>
+
+  <div class="stack" style="gap:12px">
+   ${roles.map(r => `
+    <button type="button" class="rolecard ${r.color}" data-act="role-pick" data-v="${r.id}">
+      <span class="ico">${ic(r.icon)}</span>
+      <span class="grow">
+        <span class="badge-tag">${r.tag}</span>
+        <b>${r.title}</b>
+        <span class="d">${r.desc}</span>
+      </span>
+      <span class="chip info" style="align-self:center;flex:none">${ic('back').replace('class="i "','class="i" style="transform:rotate(180deg)"')} Open</span>
+    </button>
+   `).join('')}
   </div>
-  <h1 class="h1" style="margin:16px 0 14px">${t('role.q')}</h1>
-  <div class="stack" style="gap:14px">${cards}</div>
-  <div class="card flat" style="margin-top:20px;background:var(--surface2)">
-   <div class="row sp">
-    <div style="font-size:.85rem;color:var(--muted)">Are you an authorized recycler at the weighing station?</div>
-    <button type="button" class="btn btn-primary btn-sm" data-act="recdesk">${ic('truck')}Recycler Desk</button>
-   </div>
+
+  <div style="text-align:center;margin-top:20px">
+    <button type="button" class="link" style="font-size:0.85rem" data-act="start-onboard">Want to test the full custom registration flow? Click here.</button>
   </div>
  </div>`);
 }
@@ -251,7 +266,7 @@ function pickCard(pk){
 
 function viewShop(){
  const p=prof(),tab=S.tab.shop;
- const hdr=`<header class="appbar"><div class="gut"><div class="col"><div><div class="sub">${p.zone}</div><h1>${esc(p.shopName)}</h1></div>${langBar()}</div></div></header>`;
+ const hdr=`<header class="appbar"><div class="gut"><div class="col"><div><div class="sub">${p.zone} · Green Certified</div><h1 style="font-size:1.35rem">${esc(p.shopName)}</h1></div></div></div></header>`;
  let b='';
  if(tab==='home'){
   const ms=mine(),ms0=sod(new Date(new Date().getFullYear(),new Date().getMonth(),1)),mm=ms.filter(m=>m.pickupAt>=ms0&&m.status!=='flagged');
@@ -419,7 +434,37 @@ function aboutModal(){
   </div>
  </div>`;
 }
-function overlays(){return logOverlay()+successOverlay()+puOverlay()+reportModal()+manifestOverlay()+supportSheet()+aboutModal()}
+function roleMenuModal(){
+ if(!S.ui.roleMenu) return '';
+ const roles = [
+  { id: 'kabadi', title: 'Kabadiwala (Street Collector)', icon: 'truck', sub: 'Sunita Kamble · Dharavi' },
+  { id: 'shop', title: 'Repair Shop (Green Shop)', icon: 'wrench', sub: 'Lamington Mobile Care · Grant Road' },
+  { id: 'recdesk', title: 'Recycler Weigh Scale Desk', icon: 'truck', sub: 'Eco-Recycling Ltd · Vasai Facility' },
+  { id: 'compliance', title: 'Compliance Officer (EPR)', icon: 'building', sub: 'Samsung India Electronics · Q3 FY26' }
+ ];
+ return`<div class="overlay dim center" data-act="role-menu-close" role="dialog" aria-modal="true" aria-label="Switch Persona">
+  <div class="modal" data-stop style="max-width:440px">
+   <div class="row sp" style="margin-bottom:14px">
+    <h2 class="h1" data-first tabindex="-1" style="font-size:1.25rem">Switch Persona</h2>
+    <button type="button" class="btn btn-ghost btn-sm" data-act="role-menu-close">${ic('x')}</button>
+   </div>
+   <div class="stack" style="gap:8px">
+    ${roles.map(r => `
+      <button type="button" class="item" data-act="role-pick" data-v="${r.id}" style="border:1.5px solid var(--line);cursor:pointer">
+        <span class="ico" style="width:40px;height:40px;border-radius:10px;background:var(--primary-soft);display:grid;place-items:center;color:var(--primary-ink);flex:none">${ic(r.icon)}</span>
+        <span class="grow">
+          <b>${r.title}</b><br>
+          <span class="muted" style="font-size:0.78rem">${r.sub}</span>
+        </span>
+      </button>
+    `).join('')}
+   </div>
+   <button type="button" class="btn btn-ghost btn-block" style="margin-top:12px" data-act="home">Go to Welcome Screen</button>
+  </div>
+ </div>`;
+}
+
+function overlays(){return logOverlay()+successOverlay()+puOverlay()+reportModal()+manifestOverlay()+supportSheet()+roleMenuModal()+aboutModal()}
 function closeTop(){
  if(S.ui.about)S.ui.about=false;else if(S.ui.sheet)S.ui.sheet=false;else if(S.ui.manifest)S.ui.manifest=null;else if(S.ui.modal)S.ui.modal=null;else if(S.ui.pu)S.ui.pu=null;else if(S.ui.success)S.ui.success=null;else if(S.ui.log)S.ui.log=null;else return false;
  render();return true}

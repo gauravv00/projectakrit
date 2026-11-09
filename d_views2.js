@@ -179,6 +179,38 @@ function addSampleHistory(){
  render()}
 
 const ACT={
+ 'role-menu'(){ S.ui.roleMenu = true; S.ui.fo = true; render(); },
+ 'role-menu-close'(el,e){ if(el.classList.contains('overlay')&&e.target.closest('[data-stop]'))return; S.ui.roleMenu = false; render(); },
+ 'role-pick'(el){
+   const r = el.dataset.v;
+   S.ui.roleMenu = false;
+   if(r === 'recdesk'){
+     S.view = 'recycler';
+     S.pub = null;
+     S.ui.rd = null;
+   } else {
+     S.role = r;
+     S.view = 'app';
+     if(!S.profiles[r] && DEFAULT_PROFILES[r]) {
+       S.profiles[r] = { ...DEFAULT_PROFILES[r] };
+     }
+     persist();
+   }
+   render();
+   window.scrollTo(0, 0);
+ },
+ 'toggle-frame'(){
+   S.ui.wideMode = !S.ui.wideMode;
+   render();
+ },
+ 'start-onboard'(){
+   S.ob = { role: 'kabadi', step: 0, d: { zone: 'Dharavi' } };
+   S.view = 'onboard';
+   S.ui.fo = true;
+   render();
+   window.scrollTo(0, 0);
+ },
+
  'role-switch'(el){
    const r=el.value;
    if(!r){S.view='select';render();return}
