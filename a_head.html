@@ -1,5 +1,8 @@
 <title>Akrit</title>
 <meta name="claude:viewport-fit-sides" content="cover">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="apple-touch-icon" href="/icons/icon-192.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+Devanagari:wght@400;600;700&family=Nunito:wght@600;700;800&display=swap">
@@ -56,15 +59,28 @@ a{color:var(--primary-ink)}
 .grow{flex:1;min-width:0}
 svg.i{width:1.25em;height:1.25em;flex:none;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-.25em}
 
-/* demo bar */
-.demobar{background:var(--surface2);border-bottom:1px solid var(--line);font-size:.78rem}
-.demobar .col{display:flex;flex-wrap:wrap;align-items:center;gap:2px 6px;min-height:44px}
+/* demo bar & modern header */
+.demobar{background:rgba(241,238,232,.95);border-bottom:1px solid var(--line);font-size:.82rem;position:sticky;top:0;z-index:30;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.demobar .col{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;min-height:50px}
 .demobar .col.wide,.demobar .col{max-width:1240px}
-.demobar button{background:none;border:0;min-height:44px;padding:0 8px;color:var(--primary-ink);font-weight:600;font-size:.78rem;display:inline-flex;align-items:center;gap:6px}
-.demobar button[aria-pressed="true"]{background:var(--primary);color:var(--on-primary);border-radius:8px}
-.demobar .tag{color:var(--muted)}
-.dotlive{width:8px;height:8px;border-radius:50%;background:var(--ok-strong);display:inline-block}
-.dotlive.off{background:var(--amber-strong)}
+.demobar button{background:var(--surface);border:1px solid var(--line);min-height:36px;padding:4px 12px;border-radius:99px;color:var(--text);font-weight:600;font-size:.78rem;display:inline-flex;align-items:center;gap:6px;transition:all .15s ease}
+.demobar button:hover{border-color:var(--primary-ink);color:var(--primary-ink);transform:translateY(-1px)}
+.demobar button[aria-pressed="true"]{background:var(--primary);color:var(--on-primary);border-color:var(--primary)}
+.demobar .role-select{font-size:.8rem;height:36px;border-radius:99px;padding:0 12px;border:1.5px solid var(--primary-ink);background:var(--surface);font-weight:700;color:var(--primary-ink);outline:none;cursor:pointer}
+.demobar .tag{color:var(--muted);font-weight:600}
+.dotlive{width:9px;height:9px;border-radius:50%;background:var(--ok-strong);display:inline-block;box-shadow:0 0 0 0 rgba(23,101,61,.7);animation:pulse-dot 2s infinite}
+@keyframes pulse-dot{0%{box-shadow:0 0 0 0 rgba(23,101,61,.7)}70%{box-shadow:0 0 0 7px rgba(23,101,61,0)}100%{box-shadow:0 0 0 0 rgba(23,101,61,0)}}
+.dotlive.off{background:var(--amber-strong);animation:none;box-shadow:none}
+
+/* industrial digital scale console */
+.scale-console{background:#0e1718;color:#2ce88d;border-radius:20px;border:2px solid #1a3236;padding:20px;box-shadow:inset 0 4px 12px rgba(0,0,0,.6), 0 8px 24px rgba(0,0,0,.25);text-align:center;position:relative}
+.scale-console .brand{font:700 .75rem var(--font-mono);letter-spacing:.14em;color:#5a8a8e;text-transform:uppercase;margin-bottom:8px}
+.scale-console .readout{font:800 3.6rem/1 var(--font-mono);color:#3bf59c;letter-spacing:.02em;text-shadow:0 0 16px rgba(59,245,156,.35);font-variant-numeric:tabular-nums}
+.scale-console .unit{font-size:1.1rem;color:#7ad0d7;margin-left:6px;font-weight:700}
+.scale-console .tolerance-pill{margin-top:10px;display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:99px;font-size:.82rem;font-weight:700}
+.scale-console .tolerance-pill.ok{background:rgba(23,101,61,.3);color:#4cd98d;border:1px solid #1e8450}
+.scale-console .tolerance-pill.warn{background:rgba(244,162,97,.2);color:#f4b07a;border:1px solid #c97420}
+.scale-console .tolerance-pill.bad{background:rgba(179,38,30,.25);color:#ff9b92;border:1px solid #b3261e}
 
 /* app bars */
 .appbar{background:var(--primary);color:var(--on-primary)}

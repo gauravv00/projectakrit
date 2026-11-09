@@ -19,15 +19,25 @@ const dbLabel=()=>({live:['Shared data','dotlive'],local:['This device only','do
 
 /* ================= shell ================= */
 function demobar(){
- const [lab,cls]=dbLabel(),inApp=S.view==='app'||S.view==='onboard'||S.view==='recycler'||S.pub;
- return`<div class="demobar"><div class="gut"><div class="col">
-  <strong class="tag" style="font-weight:700">Akrit demo</strong>
-  ${inApp?`<button type="button" data-act="home">${ic('user')}Switch role</button>`:''}
-  <button type="button" data-act="recdesk">${ic('truck')}Recycler desk</button>
-  <button type="button" data-act="offline" aria-pressed="${S.offline}">${ic('wifioff')}Test offline</button>
-  <button type="button" data-act="about-open">${ic('shield')}Project Vision</button>
-  <span class="tag" style="margin-left:auto;display:inline-flex;align-items:center;gap:6px"><span class="${cls}"></span>${lab}</span>
- </div></div></div>`}
+ const [lab,cls]=dbLabel();
+ const isPwaReady = typeof window !== 'undefined' && !!window.deferredPwaPrompt;
+ return`<header class="demobar"><div class="gut"><div class="col">
+  <span class="brandmark" style="font-size:1.15rem;color:var(--primary-ink);margin-right:2px">
+    <span style="width:28px;height:28px;border-radius:8px;background:var(--primary);color:#fff;display:grid;place-items:center">${ic('mark')}</span>
+    Akrit
+  </span>
+  <select class="role-select" data-act="role-switch" aria-label="Switch Persona">
+    <option value="" ${S.view==='select'?'selected':''}>Select Persona...</option>
+    <option value="kabadi" ${(S.view==='app'&&S.role==='kabadi')?'selected':''}>Kabadiwala (Street Collector)</option>
+    <option value="shop" ${(S.view==='app'&&S.role==='shop')?'selected':''}>Repair Shop (Green Shop)</option>
+    <option value="recdesk" ${S.view==='recycler'?'selected':''}>Recycler Desk (Scale Weigher)</option>
+    <option value="compliance" ${(S.view==='app'&&S.role==='compliance')?'selected':''}>Compliance Officer (Brand EPR)</option>
+  </select>
+  <button type="button" data-act="about-open" title="Project Vision & Model">${ic('shield')}Vision</button>
+  <button type="button" data-act="offline" aria-pressed="${S.offline}">${ic('wifioff')}${S.offline?'Offline':'Online'}</button>
+  ${isPwaReady?`<button type="button" style="background:var(--amber);color:var(--on-amber);border-color:var(--amber-strong);font-weight:700" data-act="pwa-install">${ic('award')}Install App</button>`:''}
+  <span class="tag" style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:.78rem"><span class="${cls}"></span>${lab}</span>
+ </div></div></header>`}
 
 function render(){
  let h=demobar();
@@ -65,14 +75,43 @@ function animateDial(){
 
 /* ================= role select & onboarding ================= */
 function viewSelect(){
- const defs=[['kabadi','k','truck'],['shop','s','wrench'],['compliance','c','building']];
- const cards=defs.map(([r,c,i])=>{const p=S.profiles[r];return`<button type="button" class="rolecard ${c}" data-act="pick" data-v="${r}"><span class="ico">${ic(i)}</span><span><b>${t('role.'+c)}</b><span class="d">${t('role.'+c+'.d')}</span></span>${p?`<span class="cont chip info">${t('resume')}</span>`:''}</button>`}).join('');
+ const defs=[
+  ['kabadi','k','truck','FIRST-MILE COLLECTOR','Earn ~38% above middleman rates with instant UPI and verified digital manifests.'],
+  ['shop','s','wrench','ELECTRONIC REPAIR SHOP','Monetize component scrap, schedule doorstep tempo pickups, and display your Green Shop certificate.'],
+  ['compliance','c','building','BRAND COMPLIANCE OFFICER','Track CPCB 70% annual targets, audit verified manifests, and download CPCB EPR portal reports.']
+ ];
+ const cards=defs.map(([r,c,i,tag,sub])=>{
+  const p=S.profiles[r];
+  return`<button type="button" class="rolecard ${c}" data-act="pick" data-v="${r}">
+   <span class="ico">${ic(i)}</span>
+   <span class="grow">
+    <span class="badge-tag">${tag}</span>
+    <b>${t('role.'+c)}</b>
+    <span class="d" style="font-size:.88rem;color:var(--muted);display:block;margin-top:2px">${sub}</span>
+   </span>
+   ${p?`<span class="cont chip info">${t('resume')}</span>`:''}
+  </button>`;
+ }).join('');
+
  return col(`<div class="page">
-  <div class="row sp"><span class="brandmark" style="color:var(--primary-ink)"><span style="width:40px;height:40px;border-radius:12px;background:var(--primary);color:#fff;display:grid;place-items:center">${ic('mark')}</span>Akrit</span>${langBar(true)}</div>
-  <h1 class="h1" style="margin:30px 0 16px">${t('role.q')}</h1>
+  <div class="row sp" style="margin-bottom:8px">
+   <span class="brandmark" style="color:var(--primary-ink)"><span style="width:40px;height:40px;border-radius:12px;background:var(--primary);color:#fff;display:grid;place-items:center">${ic('mark')}</span>Akrit</span>
+   ${langBar(true)}
+  </div>
+  <div class="card flat" style="background:var(--primary-soft);border-left:4px solid var(--primary);margin:16px 0 20px;padding:14px 16px">
+   <div style="font-weight:700;color:var(--primary-ink);font-size:.92rem;margin-bottom:2px">Zomato for India's E-Waste</div>
+   <p class="muted" style="font-size:.85rem">Connecting informal collectors & repair shops to MPCB-authorized recyclers through verifiable digital manifests.</p>
+  </div>
+  <h1 class="h1" style="margin:16px 0 14px">${t('role.q')}</h1>
   <div class="stack" style="gap:14px">${cards}</div>
-  <p class="muted" style="margin-top:20px;font-size:.9rem">Each role has its own sign-up and its own screens. Records you create here are shared between roles, so a handover logged as a kabadiwala shows up for the recycler and the compliance officer.</p>
- </div>`)}
+  <div class="card flat" style="margin-top:20px;background:var(--surface2)">
+   <div class="row sp">
+    <div style="font-size:.85rem;color:var(--muted)">Are you an authorized recycler at the weighing station?</div>
+    <button type="button" class="btn btn-primary btn-sm" data-act="recdesk">${ic('truck')}Recycler Desk</button>
+   </div>
+  </div>
+ </div>`);
+}
 
 const OB={kabadi:['phone','otp','photo'],shop:['phone','otp','shop'],compliance:['email','company','verify']};
 const KZONES=['Dharavi','Kurla','Andheri','Navi Mumbai','Thane','Vasai'];
@@ -135,9 +174,12 @@ function kHome(){
  const val=m=>m.status==='verified'?amountOf(m):amountExp(m);
  const tot=sum(td,val),conf=sum(td.filter(m=>m.status==='verified'),amountOf),wait=tot-conf,extra=tot*(1-MIDDLE),wk=ms.filter(m=>m.pickupAt>=Date.now()-7*DAY).length;
  return`<div class="stack" style="gap:16px">
+  <div class="row wrap" style="gap:6px;font-size:.78rem;background:var(--surface);padding:8px 12px;border-radius:12px;border:1px solid var(--line);justify-content:space-between">
+    <span class="muted">Live CPCB Rates:</span><span>📱 Phone: <b>₹40/kg</b></span><span>💻 Laptop: <b>₹32/kg</b></span><span>⚡ Board: <b>₹85/kg</b></span>
+  </div>
   <button type="button" class="cta-big" data-act="log">${ic('camera')}<b>${t('logcta')}</b><span>${t('logsub')}</span></button>
   <div class="stats"><div class="card stat big"><div class="v" id="todayv">${inr(tot)}</div><div class="l">${t('today')}</div>${wait>0?`<div class="l" style="margin-top:6px">${inr(conf)} ${t('confirmed')} · ${inr(wait)} ${t('waiting')}</div>`:''}</div><div class="card stat"><div class="v">${wk}</div><div class="l">${t('week')}</div></div></div>
-  <div class="card motiv"><div class="row sp"><span class="eyebrow">${t('extra')}</span></div><div class="extra">${t('extra')}: ${inr(extra)}</div>
+  <div class="card motiv"><div class="row sp"><span class="eyebrow">${t('extra')}</span><span class="chip ok">+₹${Math.round(extra)} extra</span></div><div class="extra" style="font-size:1.35rem">${t('extra')}: ${inr(extra)}</div>
    <div class="track" role="img" aria-label="${t('middle')} ${inr(tot*MIDDLE)}. ${t('youget')} ${inr(tot)}."><span class="a" style="width:${tot?MIDDLE*100:100}%"></span><span class="b" style="width:${tot?(1-MIDDLE)*100:0}%"></span></div>
    <div class="legend"><span>${t('middle')}: ${inr(tot*MIDDLE)}</span><span>${t('youget')}: ${inr(tot)}</span></div></div>
   ${ms.length?'':`<div class="card flat empty"><h3>${t('none_coll')}</h3><p class="muted">${t('none_sub')}</p><button type="button" class="link" data-act="sample-load">${t('sample_load')}</button></div>`}

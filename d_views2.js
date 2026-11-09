@@ -125,15 +125,40 @@ function viewRecycler(){
  let b;
  if(m){
   const r=REC[m.rid];
-  b=`<button type="button" class="btn btn-ghost btn-sm" style="margin-bottom:12px" data-act="rd-back">${ic('back')}${t('back')}</button><div class="card"><div class="row" style="align-items:flex-start">${photoOrIcon(m,'thumb')}<div class="grow"><div class="mono" style="font-weight:700">${m.id}</div><div>${CAT[m.cat].en} · ${genLabel(m)}</div><div class="muted" style="font-size:.85rem">${m.zone} · picked up ${fmtDT(m.pickupAt)}</div></div></div><hr><div class="row sp"><span class="muted">Logged by generator</span><b class="num">${nf(m.wl)} kg</b></div></div>
-  <div class="card" style="margin-top:12px"><h3 style="margin-bottom:4px">Weight at your scale</h3><p class="muted" style="font-size:.88rem;margin-bottom:12px">Enter the weight you measured. A difference over 10% flags the handover.</p>
-  <div class="row" style="justify-content:space-between;gap:6px"><button type="button" class="btn btn-ghost" style="min-width:56px" data-hold="-1" data-for="rd" aria-label="Minus 1 kilogram">−1</button><button type="button" class="btn btn-ghost" style="min-width:56px" data-hold="-0.1" data-for="rd" aria-label="Minus 0.1 kilogram">−0.1</button><div style="text-align:center;flex:1"><output id="rdkg" style="font:800 2.2rem var(--font-head)" aria-live="polite">${nf(d.kg)}</output><div class="muted">kg</div></div><button type="button" class="btn btn-ghost" style="min-width:56px" data-hold="0.1" data-for="rd" aria-label="Plus 0.1 kilogram">+0.1</button><button type="button" class="btn btn-ghost" style="min-width:56px" data-hold="1" data-for="rd" aria-label="Plus 1 kilogram">+1</button></div>
-  <p id="rdd" class="muted" style="text-align:center;margin:10px 0 14px">${rdDelta(m)}</p>
-  ${d.flag?`<div class="field"><span class="lbl">Reason</span><div class="seg" role="radiogroup" aria-label="Reason">${['Weight differs','Photo does not match','Wrong category'].map(x=>`<button type="button" role="radio" aria-checked="${d.reason===x}" data-act="rd-reason" data-v="${x}">${x}</button>`).join('')}</div></div><div class="row wrap"><button type="button" class="btn btn-primary grow" style="background:var(--bad)" data-act="rd-flag-ok">${ic('x')}Flag handover</button><button type="button" class="btn btn-ghost" data-act="rd-flag">${t('cancel')}</button></div>`
-  :`<div class="row wrap"><button type="button" class="btn btn-primary grow" data-act="rd-ok">${ic('check')}Confirm weight</button><button type="button" class="btn btn-ghost" data-act="rd-flag">${ic('alert')}Flag a problem</button></div>`}</div>
-  <p class="muted" style="font-size:.82rem;margin-top:10px">${esc(r.name)} · ${r.lic}</p>`}
- else b=`<div class="field"><label for="rd-r">You are</label><select id="rd-r" data-bind="ui.rd.rid">${Object.values(REC).map(r=>`<option value="${r.id}" ${d.rid===r.id?'selected':''}>${r.name}</option>`).join('')}</select></div><div class="field"><label for="rd-q">Find a handover code</label><input id="rd-q" type="search" placeholder="AKR-…" data-bind="ui.rd.q" value="${esc(d.q)}"></div><div id="rdlist">${rdList()}</div>`;
- return`<header class="appbar"><div class="gut"><div class="col"><div><div class="sub">Recycler desk</div><h1>Confirm handovers</h1></div>${langBar()}</div></div></header>`+col(`<main class="page">${b}</main>`)}
+  const dl=d.kg-m.wl, pct=Math.abs(dl)/m.wl*100;
+  const tolClass = pct<=10 ? 'ok' : pct<=15 ? 'warn' : 'bad';
+  const tolText = pct<=10 ? '✓ Within 10% CPCB Tolerance (EPR Eligible)' : '⚠️ Exceeds 10% Limit — Discrepancy Flag Required';
+
+  b=`<button type="button" class="btn btn-ghost btn-sm" style="margin-bottom:12px" data-act="rd-back">${ic('back')}${t('back')}</button>
+  <div class="card"><div class="row" style="align-items:flex-start">${photoOrIcon(m,'thumb')}
+   <div class="grow"><div class="mono" style="font-weight:700">${m.id}</div><div>${CAT[m.cat].en} · ${genLabel(m)}</div><div class="muted" style="font-size:.85rem">${m.zone} · picked up ${fmtDT(m.pickupAt)}</div></div>
+  </div><hr><div class="row sp"><span class="muted">Logged by generator</span><b class="num">${nf(m.wl)} kg</b></div></div>
+
+  <div class="card" style="margin-top:12px">
+   <div class="scale-console" style="margin-bottom:16px">
+    <div class="brand">⚖️ MPCB CERTIFIED INDUSTRIAL WEIGH SCALE</div>
+    <div class="readout"><output id="rdkg" aria-live="polite">${nf(d.kg)}</output><span class="unit">KG</span></div>
+    <div class="tolerance-pill ${tolClass}">
+      ${ic(pct<=10?'check':'alert')} ${tolText} (${dl>=0?'+':''}${nf(dl)} kg, ${pct.toFixed(1)}%)
+    </div>
+   </div>
+
+   <div class="row" style="justify-content:center;gap:8px;margin-bottom:14px">
+    <button type="button" class="btn btn-ghost" style="min-width:54px" data-hold="-1" data-for="rd">−1 kg</button>
+    <button type="button" class="btn btn-ghost" style="min-width:54px" data-hold="-0.1" data-for="rd">−0.1</button>
+    <button type="button" class="btn btn-ghost" style="min-width:54px" data-hold="0.1" data-for="rd">+0.1</button>
+    <button type="button" class="btn btn-ghost" style="min-width:54px" data-hold="1" data-for="rd">+1 kg</button>
+   </div>
+
+   ${d.flag?`<div class="field"><span class="lbl">Reason for flagging</span><div class="seg" role="radiogroup">${['Weight differs by >10%','Photo does not match','Wrong category','Damaged / Non-recyclable'].map(x=>`<button type="button" role="radio" aria-checked="${d.reason===x}" data-act="rd-reason" data-v="${x}">${x}</button>`).join('')}</div></div><div class="row wrap"><button type="button" class="btn btn-primary grow" style="background:var(--bad)" data-act="rd-flag-ok">${ic('x')}Flag Handover</button><button type="button" class="btn btn-ghost" data-act="rd-flag">${t('cancel')}</button></div>`
+   :`<div class="row wrap"><button type="button" class="btn btn-primary grow" style="background:var(--ok-strong);min-height:54px;font-size:1.1rem" data-act="rd-ok">${ic('check')}Confirm Scale Weight & Payout</button><button type="button" class="btn btn-ghost" data-act="rd-flag">${ic('alert')}Flag Discrepancy</button></div>`}
+  </div>
+  <p class="muted" style="font-size:.82rem;margin-top:10px">${esc(r.name)} · ${r.lic}</p>`;
+ }
+ else b=`<div class="field"><label for="rd-r">Active Recycling Facility</label><select id="rd-r" data-bind="ui.rd.rid">${Object.values(REC).map(r=>`<option value="${r.id}" ${d.rid===r.id?'selected':''}>${r.name} (${r.base})</option>`).join('')}</select></div><div class="field"><label for="rd-q">Scan or Search Handover Manifest</label><input id="rd-q" type="search" placeholder="Search AKR-XXXX or Generator..." data-bind="ui.rd.q" value="${esc(d.q)}"></div><div id="rdlist">${rdList()}</div>`;
+
+ return`<header class="appbar"><div class="gut"><div class="col"><div><div class="sub">Recycler Facility Desk</div><h1>Confirm Handovers & Scale Weighing</h1></div>${langBar()}</div></div></header>`+col(`<main class="page">${b}</main>`);
+}
 function rdDelta(m){const d=rdState(),dl=d.kg-m.wl,p=Math.abs(dl)/m.wl*100;return`${dl>=0?'+':''}${nf(dl)} kg (${(dl/m.wl*100).toFixed(1)}%) against logged weight${p>10?' · will be flagged':''}`}
 function rdAdj(dv){const d=rdState(),m=getM(d.open);if(!m)return;d.kg=Math.max(.1,Math.round((d.kg+dv)*10)/10);const a=$('#rdkg'),b=$('#rdd');if(a)a.textContent=nf(d.kg);if(b)b.textContent=rdDelta(m)}
 
@@ -154,6 +179,23 @@ function addSampleHistory(){
  render()}
 
 const ACT={
+ 'role-switch'(el){
+   const r=el.value;
+   if(!r){S.view='select';render();return}
+   if(r==='recdesk'){ACT.recdesk();return}
+   if(S.profiles[r]){S.role=r;S.view='app';persist()}
+   else{S.ob={role:r,step:0,d:{zone:r==='shop'?'Grant Road':'Dharavi'}};S.view='onboard';S.ui.fo=true}
+   render();scrollTo(0,0)
+ },
+ 'pwa-install'(){
+   if(window.deferredPwaPrompt){
+     window.deferredPwaPrompt.prompt();
+     window.deferredPwaPrompt.userChoice.then(()=>{
+       window.deferredPwaPrompt=null;
+       render();
+     });
+   }
+ },
  'about-open'(){S.ui.about=true;S.ui.fo=true;render()},
  'about-close'(el,e){if(el.classList.contains('overlay')&&e.target.closest('[data-stop]'))return;S.ui.about=false;render()},
  lang(el){S.lang=el.dataset.v;persist();document.documentElement.lang=S.lang;render()},
@@ -228,6 +270,10 @@ let holdT=null,holdI=null;
 const stopHold=()=>{clearTimeout(holdT);clearInterval(holdI);holdT=holdI=null};
 app.addEventListener('pointerdown',e=>{const b=e.target.closest('[data-hold]');if(!b)return;const dv=+b.dataset.hold,fn=b.dataset.for==='rd'?rdAdj:logAdj;fn(dv);b.dataset.did='1';holdT=setTimeout(()=>{holdI=setInterval(()=>fn(dv),110)},450)});
 ['pointerup','pointercancel','pointerleave'].forEach(ev=>app.addEventListener(ev,stopHold,true));document.addEventListener('pointerup',stopHold);
+app.addEventListener('change',e=>{
+ const el=e.target.closest('select[data-act]');
+ if(el&&ACT[el.dataset.act])ACT[el.dataset.act](el,e);
+});
 app.addEventListener('input',e=>{
  const el=e.target,p=el.dataset&&el.dataset.bind;if(!p)return;
  let v=el.type==='checkbox'?el.checked:el.type==='range'?+el.value:el.type==='number'?(el.value===''?NaN:+el.value):el.value;

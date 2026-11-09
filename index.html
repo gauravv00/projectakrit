@@ -9,6 +9,9 @@
 <meta name="description" content="Akrit - Digital E-Waste Supply Chain & Digital Manifest Layer for India's Informal Recycling Sector">
 <title>Akrit — Digital E-Waste Supply Chain</title>
 <meta name="claude:viewport-fit-sides" content="cover">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="apple-touch-icon" href="/icons/icon-192.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+Devanagari:wght@400;600;700&family=Nunito:wght@600;700;800&display=swap">
@@ -65,15 +68,28 @@ a{color:var(--primary-ink)}
 .grow{flex:1;min-width:0}
 svg.i{width:1.25em;height:1.25em;flex:none;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-.25em}
 
-/* demo bar */
-.demobar{background:var(--surface2);border-bottom:1px solid var(--line);font-size:.78rem}
-.demobar .col{display:flex;flex-wrap:wrap;align-items:center;gap:2px 6px;min-height:44px}
+/* demo bar & modern header */
+.demobar{background:rgba(241,238,232,.95);border-bottom:1px solid var(--line);font-size:.82rem;position:sticky;top:0;z-index:30;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.demobar .col{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;min-height:50px}
 .demobar .col.wide,.demobar .col{max-width:1240px}
-.demobar button{background:none;border:0;min-height:44px;padding:0 8px;color:var(--primary-ink);font-weight:600;font-size:.78rem;display:inline-flex;align-items:center;gap:6px}
-.demobar button[aria-pressed="true"]{background:var(--primary);color:var(--on-primary);border-radius:8px}
-.demobar .tag{color:var(--muted)}
-.dotlive{width:8px;height:8px;border-radius:50%;background:var(--ok-strong);display:inline-block}
-.dotlive.off{background:var(--amber-strong)}
+.demobar button{background:var(--surface);border:1px solid var(--line);min-height:36px;padding:4px 12px;border-radius:99px;color:var(--text);font-weight:600;font-size:.78rem;display:inline-flex;align-items:center;gap:6px;transition:all .15s ease}
+.demobar button:hover{border-color:var(--primary-ink);color:var(--primary-ink);transform:translateY(-1px)}
+.demobar button[aria-pressed="true"]{background:var(--primary);color:var(--on-primary);border-color:var(--primary)}
+.demobar .role-select{font-size:.8rem;height:36px;border-radius:99px;padding:0 12px;border:1.5px solid var(--primary-ink);background:var(--surface);font-weight:700;color:var(--primary-ink);outline:none;cursor:pointer}
+.demobar .tag{color:var(--muted);font-weight:600}
+.dotlive{width:9px;height:9px;border-radius:50%;background:var(--ok-strong);display:inline-block;box-shadow:0 0 0 0 rgba(23,101,61,.7);animation:pulse-dot 2s infinite}
+@keyframes pulse-dot{0%{box-shadow:0 0 0 0 rgba(23,101,61,.7)}70%{box-shadow:0 0 0 7px rgba(23,101,61,0)}100%{box-shadow:0 0 0 0 rgba(23,101,61,0)}}
+.dotlive.off{background:var(--amber-strong);animation:none;box-shadow:none}
+
+/* industrial digital scale console */
+.scale-console{background:#0e1718;color:#2ce88d;border-radius:20px;border:2px solid #1a3236;padding:20px;box-shadow:inset 0 4px 12px rgba(0,0,0,.6), 0 8px 24px rgba(0,0,0,.25);text-align:center;position:relative}
+.scale-console .brand{font:700 .75rem var(--font-mono);letter-spacing:.14em;color:#5a8a8e;text-transform:uppercase;margin-bottom:8px}
+.scale-console .readout{font:800 3.6rem/1 var(--font-mono);color:#3bf59c;letter-spacing:.02em;text-shadow:0 0 16px rgba(59,245,156,.35);font-variant-numeric:tabular-nums}
+.scale-console .unit{font-size:1.1rem;color:#7ad0d7;margin-left:6px;font-weight:700}
+.scale-console .tolerance-pill{margin-top:10px;display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:99px;font-size:.82rem;font-weight:700}
+.scale-console .tolerance-pill.ok{background:rgba(23,101,61,.3);color:#4cd98d;border:1px solid #1e8450}
+.scale-console .tolerance-pill.warn{background:rgba(244,162,97,.2);color:#f4b07a;border:1px solid #c97420}
+.scale-console .tolerance-pill.bad{background:rgba(179,38,30,.25);color:#ff9b92;border:1px solid #b3261e}
 
 /* app bars */
 .appbar{background:var(--primary);color:var(--on-primary)}
@@ -812,15 +828,25 @@ const dbLabel=()=>({live:['Shared data','dotlive'],local:['This device only','do
 
 /* ================= shell ================= */
 function demobar(){
- const [lab,cls]=dbLabel(),inApp=S.view==='app'||S.view==='onboard'||S.view==='recycler'||S.pub;
- return`<div class="demobar"><div class="gut"><div class="col">
-  <strong class="tag" style="font-weight:700">Akrit demo</strong>
-  ${inApp?`<button type="button" data-act="home">${ic('user')}Switch role</button>`:''}
-  <button type="button" data-act="recdesk">${ic('truck')}Recycler desk</button>
-  <button type="button" data-act="offline" aria-pressed="${S.offline}">${ic('wifioff')}Test offline</button>
-  <button type="button" data-act="about-open">${ic('shield')}Project Vision</button>
-  <span class="tag" style="margin-left:auto;display:inline-flex;align-items:center;gap:6px"><span class="${cls}"></span>${lab}</span>
- </div></div></div>`}
+ const [lab,cls]=dbLabel();
+ const isPwaReady = typeof window !== 'undefined' && !!window.deferredPwaPrompt;
+ return`<header class="demobar"><div class="gut"><div class="col">
+  <span class="brandmark" style="font-size:1.15rem;color:var(--primary-ink);margin-right:2px">
+    <span style="width:28px;height:28px;border-radius:8px;background:var(--primary);color:#fff;display:grid;place-items:center">${ic('mark')}</span>
+    Akrit
+  </span>
+  <select class="role-select" data-act="role-switch" aria-label="Switch Persona">
+    <option value="" ${S.view==='select'?'selected':''}>Select Persona...</option>
+    <option value="kabadi" ${(S.view==='app'&&S.role==='kabadi')?'selected':''}>Kabadiwala (Street Collector)</option>
+    <option value="shop" ${(S.view==='app'&&S.role==='shop')?'selected':''}>Repair Shop (Green Shop)</option>
+    <option value="recdesk" ${S.view==='recycler'?'selected':''}>Recycler Desk (Scale Weigher)</option>
+    <option value="compliance" ${(S.view==='app'&&S.role==='compliance')?'selected':''}>Compliance Officer (Brand EPR)</option>
+  </select>
+  <button type="button" data-act="about-open" title="Project Vision & Model">${ic('shield')}Vision</button>
+  <button type="button" data-act="offline" aria-pressed="${S.offline}">${ic('wifioff')}${S.offline?'Offline':'Online'}</button>
+  ${isPwaReady?`<button type="button" style="background:var(--amber);color:var(--on-amber);border-color:var(--amber-strong);font-weight:700" data-act="pwa-install">${ic('award')}Install App</button>`:''}
+  <span class="tag" style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:.78rem"><span class="${cls}"></span>${lab}</span>
+ </div></div></header>`}
 
 function render(){
  let h=demobar();
@@ -858,14 +884,43 @@ function animateDial(){
 
 /* ================= role select & onboarding ================= */
 function viewSelect(){
- const defs=[['kabadi','k','truck'],['shop','s','wrench'],['compliance','c','building']];
- const cards=defs.map(([r,c,i])=>{const p=S.profiles[r];return`<button type="button" class="rolecard ${c}" data-act="pick" data-v="${r}"><span class="ico">${ic(i)}</span><span><b>${t('role.'+c)}</b><span class="d">${t('role.'+c+'.d')}</span></span>${p?`<span class="cont chip info">${t('resume')}</span>`:''}</button>`}).join('');
+ const defs=[
+  ['kabadi','k','truck','FIRST-MILE COLLECTOR','Earn ~38% above middleman rates with instant UPI and verified digital manifests.'],
+  ['shop','s','wrench','ELECTRONIC REPAIR SHOP','Monetize component scrap, schedule doorstep tempo pickups, and display your Green Shop certificate.'],
+  ['compliance','c','building','BRAND COMPLIANCE OFFICER','Track CPCB 70% annual targets, audit verified manifests, and download CPCB EPR portal reports.']
+ ];
+ const cards=defs.map(([r,c,i,tag,sub])=>{
+  const p=S.profiles[r];
+  return`<button type="button" class="rolecard ${c}" data-act="pick" data-v="${r}">
+   <span class="ico">${ic(i)}</span>
+   <span class="grow">
+    <span class="badge-tag">${tag}</span>
+    <b>${t('role.'+c)}</b>
+    <span class="d" style="font-size:.88rem;color:var(--muted);display:block;margin-top:2px">${sub}</span>
+   </span>
+   ${p?`<span class="cont chip info">${t('resume')}</span>`:''}
+  </button>`;
+ }).join('');
+
  return col(`<div class="page">
-  <div class="row sp"><span class="brandmark" style="color:var(--primary-ink)"><span style="width:40px;height:40px;border-radius:12px;background:var(--primary);color:#fff;display:grid;place-items:center">${ic('mark')}</span>Akrit</span>${langBar(true)}</div>
-  <h1 class="h1" style="margin:30px 0 16px">${t('role.q')}</h1>
+  <div class="row sp" style="margin-bottom:8px">
+   <span class="brandmark" style="color:var(--primary-ink)"><span style="width:40px;height:40px;border-radius:12px;background:var(--primary);color:#fff;display:grid;place-items:center">${ic('mark')}</span>Akrit</span>
+   ${langBar(true)}
+  </div>
+  <div class="card flat" style="background:var(--primary-soft);border-left:4px solid var(--primary);margin:16px 0 20px;padding:14px 16px">
+   <div style="font-weight:700;color:var(--primary-ink);font-size:.92rem;margin-bottom:2px">Zomato for India's E-Waste</div>
+   <p class="muted" style="font-size:.85rem">Connecting informal collectors & repair shops to MPCB-authorized recyclers through verifiable digital manifests.</p>
+  </div>
+  <h1 class="h1" style="margin:16px 0 14px">${t('role.q')}</h1>
   <div class="stack" style="gap:14px">${cards}</div>
-  <p class="muted" style="margin-top:20px;font-size:.9rem">Each role has its own sign-up and its own screens. Records you create here are shared between roles, so a handover logged as a kabadiwala shows up for the recycler and the compliance officer.</p>
- </div>`)}
+  <div class="card flat" style="margin-top:20px;background:var(--surface2)">
+   <div class="row sp">
+    <div style="font-size:.85rem;color:var(--muted)">Are you an authorized recycler at the weighing station?</div>
+    <button type="button" class="btn btn-primary btn-sm" data-act="recdesk">${ic('truck')}Recycler Desk</button>
+   </div>
+  </div>
+ </div>`);
+}
 
 const OB={kabadi:['phone','otp','photo'],shop:['phone','otp','shop'],compliance:['email','company','verify']};
 const KZONES=['Dharavi','Kurla','Andheri','Navi Mumbai','Thane','Vasai'];
@@ -928,9 +983,12 @@ function kHome(){
  const val=m=>m.status==='verified'?amountOf(m):amountExp(m);
  const tot=sum(td,val),conf=sum(td.filter(m=>m.status==='verified'),amountOf),wait=tot-conf,extra=tot*(1-MIDDLE),wk=ms.filter(m=>m.pickupAt>=Date.now()-7*DAY).length;
  return`<div class="stack" style="gap:16px">
+  <div class="row wrap" style="gap:6px;font-size:.78rem;background:var(--surface);padding:8px 12px;border-radius:12px;border:1px solid var(--line);justify-content:space-between">
+    <span class="muted">Live CPCB Rates:</span><span>📱 Phone: <b>₹40/kg</b></span><span>💻 Laptop: <b>₹32/kg</b></span><span>⚡ Board: <b>₹85/kg</b></span>
+  </div>
   <button type="button" class="cta-big" data-act="log">${ic('camera')}<b>${t('logcta')}</b><span>${t('logsub')}</span></button>
   <div class="stats"><div class="card stat big"><div class="v" id="todayv">${inr(tot)}</div><div class="l">${t('today')}</div>${wait>0?`<div class="l" style="margin-top:6px">${inr(conf)} ${t('confirmed')} · ${inr(wait)} ${t('waiting')}</div>`:''}</div><div class="card stat"><div class="v">${wk}</div><div class="l">${t('week')}</div></div></div>
-  <div class="card motiv"><div class="row sp"><span class="eyebrow">${t('extra')}</span></div><div class="extra">${t('extra')}: ${inr(extra)}</div>
+  <div class="card motiv"><div class="row sp"><span class="eyebrow">${t('extra')}</span><span class="chip ok">+₹${Math.round(extra)} extra</span></div><div class="extra" style="font-size:1.35rem">${t('extra')}: ${inr(extra)}</div>
    <div class="track" role="img" aria-label="${t('middle')} ${inr(tot*MIDDLE)}. ${t('youget')} ${inr(tot)}."><span class="a" style="width:${tot?MIDDLE*100:100}%"></span><span class="b" style="width:${tot?(1-MIDDLE)*100:0}%"></span></div>
    <div class="legend"><span>${t('middle')}: ${inr(tot*MIDDLE)}</span><span>${t('youget')}: ${inr(tot)}</span></div></div>
   ${ms.length?'':`<div class="card flat empty"><h3>${t('none_coll')}</h3><p class="muted">${t('none_sub')}</p><button type="button" class="link" data-act="sample-load">${t('sample_load')}</button></div>`}
@@ -1303,15 +1361,40 @@ function viewRecycler(){
  let b;
  if(m){
   const r=REC[m.rid];
-  b=`<button type="button" class="btn btn-ghost btn-sm" style="margin-bottom:12px" data-act="rd-back">${ic('back')}${t('back')}</button><div class="card"><div class="row" style="align-items:flex-start">${photoOrIcon(m,'thumb')}<div class="grow"><div class="mono" style="font-weight:700">${m.id}</div><div>${CAT[m.cat].en} · ${genLabel(m)}</div><div class="muted" style="font-size:.85rem">${m.zone} · picked up ${fmtDT(m.pickupAt)}</div></div></div><hr><div class="row sp"><span class="muted">Logged by generator</span><b class="num">${nf(m.wl)} kg</b></div></div>
-  <div class="card" style="margin-top:12px"><h3 style="margin-bottom:4px">Weight at your scale</h3><p class="muted" style="font-size:.88rem;margin-bottom:12px">Enter the weight you measured. A difference over 10% flags the handover.</p>
-  <div class="row" style="justify-content:space-between;gap:6px"><button type="button" class="btn btn-ghost" style="min-width:56px" data-hold="-1" data-for="rd" aria-label="Minus 1 kilogram">−1</button><button type="button" class="btn btn-ghost" style="min-width:56px" data-hold="-0.1" data-for="rd" aria-label="Minus 0.1 kilogram">−0.1</button><div style="text-align:center;flex:1"><output id="rdkg" style="font:800 2.2rem var(--font-head)" aria-live="polite">${nf(d.kg)}</output><div class="muted">kg</div></div><button type="button" class="btn btn-ghost" style="min-width:56px" data-hold="0.1" data-for="rd" aria-label="Plus 0.1 kilogram">+0.1</button><button type="button" class="btn btn-ghost" style="min-width:56px" data-hold="1" data-for="rd" aria-label="Plus 1 kilogram">+1</button></div>
-  <p id="rdd" class="muted" style="text-align:center;margin:10px 0 14px">${rdDelta(m)}</p>
-  ${d.flag?`<div class="field"><span class="lbl">Reason</span><div class="seg" role="radiogroup" aria-label="Reason">${['Weight differs','Photo does not match','Wrong category'].map(x=>`<button type="button" role="radio" aria-checked="${d.reason===x}" data-act="rd-reason" data-v="${x}">${x}</button>`).join('')}</div></div><div class="row wrap"><button type="button" class="btn btn-primary grow" style="background:var(--bad)" data-act="rd-flag-ok">${ic('x')}Flag handover</button><button type="button" class="btn btn-ghost" data-act="rd-flag">${t('cancel')}</button></div>`
-  :`<div class="row wrap"><button type="button" class="btn btn-primary grow" data-act="rd-ok">${ic('check')}Confirm weight</button><button type="button" class="btn btn-ghost" data-act="rd-flag">${ic('alert')}Flag a problem</button></div>`}</div>
-  <p class="muted" style="font-size:.82rem;margin-top:10px">${esc(r.name)} · ${r.lic}</p>`}
- else b=`<div class="field"><label for="rd-r">You are</label><select id="rd-r" data-bind="ui.rd.rid">${Object.values(REC).map(r=>`<option value="${r.id}" ${d.rid===r.id?'selected':''}>${r.name}</option>`).join('')}</select></div><div class="field"><label for="rd-q">Find a handover code</label><input id="rd-q" type="search" placeholder="AKR-…" data-bind="ui.rd.q" value="${esc(d.q)}"></div><div id="rdlist">${rdList()}</div>`;
- return`<header class="appbar"><div class="gut"><div class="col"><div><div class="sub">Recycler desk</div><h1>Confirm handovers</h1></div>${langBar()}</div></div></header>`+col(`<main class="page">${b}</main>`)}
+  const dl=d.kg-m.wl, pct=Math.abs(dl)/m.wl*100;
+  const tolClass = pct<=10 ? 'ok' : pct<=15 ? 'warn' : 'bad';
+  const tolText = pct<=10 ? '✓ Within 10% CPCB Tolerance (EPR Eligible)' : '⚠️ Exceeds 10% Limit — Discrepancy Flag Required';
+
+  b=`<button type="button" class="btn btn-ghost btn-sm" style="margin-bottom:12px" data-act="rd-back">${ic('back')}${t('back')}</button>
+  <div class="card"><div class="row" style="align-items:flex-start">${photoOrIcon(m,'thumb')}
+   <div class="grow"><div class="mono" style="font-weight:700">${m.id}</div><div>${CAT[m.cat].en} · ${genLabel(m)}</div><div class="muted" style="font-size:.85rem">${m.zone} · picked up ${fmtDT(m.pickupAt)}</div></div>
+  </div><hr><div class="row sp"><span class="muted">Logged by generator</span><b class="num">${nf(m.wl)} kg</b></div></div>
+
+  <div class="card" style="margin-top:12px">
+   <div class="scale-console" style="margin-bottom:16px">
+    <div class="brand">⚖️ MPCB CERTIFIED INDUSTRIAL WEIGH SCALE</div>
+    <div class="readout"><output id="rdkg" aria-live="polite">${nf(d.kg)}</output><span class="unit">KG</span></div>
+    <div class="tolerance-pill ${tolClass}">
+      ${ic(pct<=10?'check':'alert')} ${tolText} (${dl>=0?'+':''}${nf(dl)} kg, ${pct.toFixed(1)}%)
+    </div>
+   </div>
+
+   <div class="row" style="justify-content:center;gap:8px;margin-bottom:14px">
+    <button type="button" class="btn btn-ghost" style="min-width:54px" data-hold="-1" data-for="rd">−1 kg</button>
+    <button type="button" class="btn btn-ghost" style="min-width:54px" data-hold="-0.1" data-for="rd">−0.1</button>
+    <button type="button" class="btn btn-ghost" style="min-width:54px" data-hold="0.1" data-for="rd">+0.1</button>
+    <button type="button" class="btn btn-ghost" style="min-width:54px" data-hold="1" data-for="rd">+1 kg</button>
+   </div>
+
+   ${d.flag?`<div class="field"><span class="lbl">Reason for flagging</span><div class="seg" role="radiogroup">${['Weight differs by >10%','Photo does not match','Wrong category','Damaged / Non-recyclable'].map(x=>`<button type="button" role="radio" aria-checked="${d.reason===x}" data-act="rd-reason" data-v="${x}">${x}</button>`).join('')}</div></div><div class="row wrap"><button type="button" class="btn btn-primary grow" style="background:var(--bad)" data-act="rd-flag-ok">${ic('x')}Flag Handover</button><button type="button" class="btn btn-ghost" data-act="rd-flag">${t('cancel')}</button></div>`
+   :`<div class="row wrap"><button type="button" class="btn btn-primary grow" style="background:var(--ok-strong);min-height:54px;font-size:1.1rem" data-act="rd-ok">${ic('check')}Confirm Scale Weight & Payout</button><button type="button" class="btn btn-ghost" data-act="rd-flag">${ic('alert')}Flag Discrepancy</button></div>`}
+  </div>
+  <p class="muted" style="font-size:.82rem;margin-top:10px">${esc(r.name)} · ${r.lic}</p>`;
+ }
+ else b=`<div class="field"><label for="rd-r">Active Recycling Facility</label><select id="rd-r" data-bind="ui.rd.rid">${Object.values(REC).map(r=>`<option value="${r.id}" ${d.rid===r.id?'selected':''}>${r.name} (${r.base})</option>`).join('')}</select></div><div class="field"><label for="rd-q">Scan or Search Handover Manifest</label><input id="rd-q" type="search" placeholder="Search AKR-XXXX or Generator..." data-bind="ui.rd.q" value="${esc(d.q)}"></div><div id="rdlist">${rdList()}</div>`;
+
+ return`<header class="appbar"><div class="gut"><div class="col"><div><div class="sub">Recycler Facility Desk</div><h1>Confirm Handovers & Scale Weighing</h1></div>${langBar()}</div></div></header>`+col(`<main class="page">${b}</main>`);
+}
 function rdDelta(m){const d=rdState(),dl=d.kg-m.wl,p=Math.abs(dl)/m.wl*100;return`${dl>=0?'+':''}${nf(dl)} kg (${(dl/m.wl*100).toFixed(1)}%) against logged weight${p>10?' · will be flagged':''}`}
 function rdAdj(dv){const d=rdState(),m=getM(d.open);if(!m)return;d.kg=Math.max(.1,Math.round((d.kg+dv)*10)/10);const a=$('#rdkg'),b=$('#rdd');if(a)a.textContent=nf(d.kg);if(b)b.textContent=rdDelta(m)}
 
@@ -1332,6 +1415,23 @@ function addSampleHistory(){
  render()}
 
 const ACT={
+ 'role-switch'(el){
+   const r=el.value;
+   if(!r){S.view='select';render();return}
+   if(r==='recdesk'){ACT.recdesk();return}
+   if(S.profiles[r]){S.role=r;S.view='app';persist()}
+   else{S.ob={role:r,step:0,d:{zone:r==='shop'?'Grant Road':'Dharavi'}};S.view='onboard';S.ui.fo=true}
+   render();scrollTo(0,0)
+ },
+ 'pwa-install'(){
+   if(window.deferredPwaPrompt){
+     window.deferredPwaPrompt.prompt();
+     window.deferredPwaPrompt.userChoice.then(()=>{
+       window.deferredPwaPrompt=null;
+       render();
+     });
+   }
+ },
  'about-open'(){S.ui.about=true;S.ui.fo=true;render()},
  'about-close'(el,e){if(el.classList.contains('overlay')&&e.target.closest('[data-stop]'))return;S.ui.about=false;render()},
  lang(el){S.lang=el.dataset.v;persist();document.documentElement.lang=S.lang;render()},
@@ -1406,6 +1506,10 @@ let holdT=null,holdI=null;
 const stopHold=()=>{clearTimeout(holdT);clearInterval(holdI);holdT=holdI=null};
 app.addEventListener('pointerdown',e=>{const b=e.target.closest('[data-hold]');if(!b)return;const dv=+b.dataset.hold,fn=b.dataset.for==='rd'?rdAdj:logAdj;fn(dv);b.dataset.did='1';holdT=setTimeout(()=>{holdI=setInterval(()=>fn(dv),110)},450)});
 ['pointerup','pointercancel','pointerleave'].forEach(ev=>app.addEventListener(ev,stopHold,true));document.addEventListener('pointerup',stopHold);
+app.addEventListener('change',e=>{
+ const el=e.target.closest('select[data-act]');
+ if(el&&ACT[el.dataset.act])ACT[el.dataset.act](el,e);
+});
 app.addEventListener('input',e=>{
  const el=e.target,p=el.dataset&&el.dataset.bind;if(!p)return;
  let v=el.type==='checkbox'?el.checked:el.type==='range'?+el.value:el.type==='number'?(el.value===''?NaN:+el.value):el.value;

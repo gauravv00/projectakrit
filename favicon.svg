@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="akritGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0D5C63"/>
+      <stop offset="50%" stop-color="#147B84"/>
+      <stop offset="100%" stop-color="#094045"/>
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FCEBD8"/>
+      <stop offset="40%" stop-color="#F4A261"/>
+      <stop offset="100%" stop-color="#C97420"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- Background App Tile -->
+  <rect width="512" height="512" rx="128" fill="url(#akritGrad)"/>
+  
+  <!-- Subtle circular circuit track -->
+  <circle cx="256" cy="256" r="180" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="8" stroke-dasharray="16 12"/>
+  <circle cx="256" cy="256" r="220" fill="none" stroke="rgba(244,162,97,0.12)" stroke-width="4"/>
+
+  <!-- Brand Symbol: Stylized Recycling 'A' -->
+  <g filter="url(#glow)">
+    <!-- Circuit lines radiating -->
+    <path d="M120 380 L180 380 M332 380 L392 380" stroke="url(#goldGrad)" stroke-width="12" stroke-linecap="round"/>
+    <circle cx="120" cy="380" r="14" fill="#F4A261"/>
+    <circle cx="392" cy="380" r="14" fill="#F4A261"/>
+    
+    <!-- Bold 'A' Loop -->
+    <path d="M160 380 L256 130 L352 380" fill="none" stroke="#FFFFFF" stroke-width="36" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Golden Crossbar with pulse node -->
+    <path d="M195 295 L317 295" stroke="url(#goldGrad)" stroke-width="32" stroke-linecap="round"/>
+    <circle cx="256" cy="295" r="24" fill="#F4A261" stroke="#FFFFFF" stroke-width="8"/>
+    
+    <!-- Top Apex Node -->
+    <circle cx="256" cy="130" r="20" fill="#FFFFFF"/>
+    <circle cx="256" cy="130" r="10" fill="#0D5C63"/>
+  </g>
+</svg>
